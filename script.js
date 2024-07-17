@@ -88,6 +88,31 @@ document.addEventListener("DOMContentLoaded", function() {
     let coinData = [];
     let userSubscription = 'free';
 
+    const modals = document.querySelectorAll('.modal');
+    const closeModalButtons = document.querySelectorAll('.close-button');
+    
+    closeModalButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = button.closest('.modal');
+            modal.style.display = 'none';
+        });
+    });
+
+    window.addEventListener('click', function(event) {
+        modals.forEach(modal => {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    // Prevent modals from moving
+    modals.forEach(modal => {
+        modal.addEventListener('touchmove', function(event) {
+            event.preventDefault();
+        }, { passive: false });
+    });
+
     
     
     const feedbackButton = document.getElementById('feedbackButton');
