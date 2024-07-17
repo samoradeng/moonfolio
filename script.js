@@ -113,6 +113,22 @@ document.addEventListener("DOMContentLoaded", function() {
         }, { passive: false });
     });
 
+    modals.forEach(modal => {
+        modal.addEventListener('touchstart', function(event) {
+            if (event.target === modal) {
+                // Prevent background scroll when touching outside the modal content
+                event.preventDefault();
+            }
+        });
+
+        modal.addEventListener('touchmove', function(event) {
+            if (event.target === modal) {
+                // Allow modal content to scroll
+                modal.querySelector('.modal-content').scrollTop += event.touches[0].clientY;
+            }
+        });
+    });
+
     
     
     const feedbackButton = document.getElementById('feedbackButton');
