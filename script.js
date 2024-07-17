@@ -98,55 +98,29 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    window.addEventListener('click', function(event) {
-        modals.forEach(modal => {
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-        });
-    });
-
-    // Prevent modals from moving
+    // Close modal when clicking outside the modal content
+window.addEventListener('click', function(event) {
     modals.forEach(modal => {
-        modal.addEventListener('touchmove', function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    });
+});
+
+// Enable scrolling within the modal content
+modals.forEach(modal => {
+    modal.querySelector('.modal-content').addEventListener('touchmove', function(event) {
+        // Allow touchmove event on modal content to enable scrolling
+        event.stopPropagation();
+    }, { passive: false });
+
+    modal.addEventListener('touchmove', function(event) {
+        // Prevent touchmove on modal background to avoid scrolling the background
+        if (event.target === modal) {
             event.preventDefault();
-        }, { passive: false });
-    });
-
-    modals.forEach(modal => {
-        modal.addEventListener('touchstart', function(event) {
-            if (event.target === modal) {
-                // Prevent background scroll when touching outside the modal content
-                event.preventDefault();
-            }
-        });
-
-        // Prevent background scroll when touching outside the modal content on iOS
-    modals.forEach(modal => {
-        modal.addEventListener('touchmove', function(event) {
-            if (event.target === modal) {
-                event.preventDefault();
-            }
-        }, { passive: false });
-    });
-    
-        // Close modal when clicking outside the modal content
-    window.addEventListener('click', function(event) {
-        modals.forEach(modal => {
-            if (event.target === modal) {
-                closeModal(modal);
-            }
-        });
-    });
-
-        modal.addEventListener('touchmove', function(event) {
-            if (event.target === modal) {
-                // Allow modal content to scroll
-                modal.querySelector('.modal-content').scrollTop += event.touches[0].clientY;
-            }
-        });
-    });
-
+        }
+    }, { passive: false });
+});
     
     
     const feedbackButton = document.getElementById('feedbackButton');
