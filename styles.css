@@ -1,0 +1,930 @@
+/* Add styles for the Add Coin button and modal */
+.add-coin-button {
+    background-color: rgb(0, 82, 255);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.add-coin-button:hover {
+    background-color: rgb(0, 70, 220);
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 24px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Other existing styles */
+body {
+    font-family: Inter, sans-serif;
+    background-color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: rgba(0, 0, 0, 0);
+    padding: 12px 24px;
+    color: #333333;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+#signInModalButton {
+    color: #333333;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 24px;
+    margin-right: 0px;
+}
+
+#signInModalButton:hover {
+    background-color: rgb(224, 236, 252);
+}
+
+.header-logo {
+    font-size: 24px;
+    margin-right: auto;
+    color: #333333;
+    font-weight: bold;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+}
+
+.auth-button {
+    background: none;
+    border: none;
+    color: rgb(0, 82, 255);
+    font-size: 16px;
+    margin: 0 10px;
+    cursor: pointer;
+}
+
+.auth-button.sign-up {
+    background-color: rgb(0, 82, 255);
+    color: white;
+    padding: 8px 24px;
+    border-radius: 24px;
+}
+
+.auth-button.sign-up:hover {
+    background-color: rgb(0, 70, 220);
+}
+
+.dashboardTotals {
+    padding: 20px;
+    background-color: #ffffff;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.dashboardTotals div p {
+    margin-bottom: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.dashboardTotals div span {
+    font-size: 24px;
+    margin-top: 8px;
+}
+
+.profit-positive {
+    color: rgb(52, 179, 73);
+}
+
+#totalPercentage.profit-positive {
+    margin: 8px;
+    padding: 4px;
+    background-color: rgba(52, 179, 73, 0.1);
+    border-radius: 8px;
+    font-size: 24px;
+}
+
+#totalPercentage.profit-negative {
+    margin: 8px;
+    padding: 4px;
+    background-color: rgba(240, 41, 52, 0.1);
+    border-radius: 8px;
+    font-size: 24px;
+}
+
+.profit-negative {
+    color: red;
+}
+
+#dashboardTotals-title {
+    font-size: 16px;
+    font-weight: normal;
+    color: rgb(76, 76, 76);
+    padding-bottom: 8px;
+    margin-top: 24px;
+}
+
+#totalInvestment {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.container {
+    width: 95%;
+    margin: 0 auto;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    border-radius: 24px;
+    margin-top: 24px;
+    margin-bottom: 72px;
+}
+
+.assets-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 {
+    text-align: left;
+    padding: 24px;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+h2 {
+    text-align: left;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    margin-top: 24px;
+}
+
+.form-group {
+    flex: 1 1 calc(45% - 10px);
+    margin: 16px 6px;
+    position: relative;
+}
+
+#addTransactionButton {
+    margin-left: 6px;
+}
+
+#AddTransactionHeaderText {
+    margin-left: 6px;
+}
+
+form input,
+form select,
+form button {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    margin-top: 5px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid #DEDFE2;
+}
+
+#coinSearch {
+    border-width: 1px;
+    border-color: #DEDFE2;
+}
+
+form input[disabled] {
+    background-color: rgb(235, 235, 235);
+    cursor: not-allowed;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: #DEDFE2;
+}
+
+form button {
+    max-width: 200px;
+    cursor: pointer;
+    background-color: rgb(0, 82, 255);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    margin-top: 26px;
+    height: 44px;
+}
+
+form button:hover {
+    background-color: rgb(1, 76, 236);
+}
+
+.coin-icon {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.coin-select-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.table-container table {
+    min-width: 1000px; /* Adjust this width as needed */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+thead {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 1;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #efeff5;
+    border-top: 1px solid #efeff5;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+td {
+    font-size: 16px;
+    background-color: #fff;
+}
+
+th {
+    background-color: #fff;
+    font-weight: normal;
+    font-size: 14px;
+    color: #666;
+}
+
+.coin-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 24px 8px;
+    margin: 0;
+    height: 39.5px;
+}
+
+.coin-cell img {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+}
+
+.coin-cell span {
+    font-weight: 600;
+}
+
+.remove-button {
+    padding: 12px;
+    border-radius: 8px;
+    border-style: none;
+    cursor: pointer;
+    background-color: rgb(242, 242, 242);
+    color: #333333;
+}
+
+.remove-button:hover {
+    color: white;
+    background-color: red;
+}
+
+.ui-menu-item-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.ui-menu-item-wrapper img {
+    margin-right: 8px;
+}
+
+.ui-menu-item-wrapper span {
+    flex-grow: 1;
+}
+
+.ui-autocomplete {
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+}
+
+.form-group input {
+    width: 100%;
+}
+
+.form-group input[type="number"] {
+    text-align: right;
+}
+
+#authContainer {
+    display: block;
+}
+
+#userContainer {
+    display: none;
+    margin-left: 20px;
+}
+
+.password-container {
+    display: flex;
+    align-items: center;
+}
+
+#togglePassword,
+#toggleSignUpPassword {
+    margin-left: 8px;
+    padding: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.error-message {
+    color: red;
+    margin-top: 10px;
+}
+
+.loading-indicator {
+    margin-top: 10px;
+}
+
+/* Media Queries for Mobile/Responsive Design */
+@media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-logo {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+
+    .auth-button {
+        font-size: 14px;
+        margin: 5px 0;
+    }
+
+    .auth-button.sign-up {
+        padding: 6px 20px;
+        font-size: 14px;
+    }
+
+    .dashboardTotals {
+        padding: 10px;
+        margin: 10px 0;
+        text-align: center;
+    }
+
+    .dashboardTotals div p,
+    .dashboardTotals div span {
+        font-size: 18px;
+    }
+
+    .container {
+        padding: 10px;
+        margin-top: 50px;
+    }
+
+    form {
+        flex-direction: column;
+    }
+
+    .form-group {
+        flex: 1 1 100%;
+        margin: 5px 16px;
+    }
+
+    form button {
+        width: 100%;
+        max-width: none;
+    }
+
+    table {
+        font-size: 12px;
+    }
+
+    th,
+    td {
+        padding: 8px;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 20% auto;
+        padding: 10px;
+    }
+
+    .coin-cell {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px;
+        height: auto;
+    }
+
+    .coin-cell img {
+        margin-bottom: 5px;
+    }
+
+    .table-container table {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    table thead tr th:nth-child(3), 
+    table thead tr th:nth-child(4), 
+    table thead tr th:nth-child(5), 
+    table thead tr th:nth-child(6), 
+    table thead tr th:nth-child(7), 
+    table thead tr th:nth-child(9),
+    table tbody tr td:nth-child(3), 
+    table tbody tr td:nth-child(4), 
+    table tbody tr td:nth-child(5), 
+    table tbody tr td:nth-child(6), 
+    table tbody tr td:nth-child(7), 
+    table tbody tr td:nth-child(9) {
+        display: none;
+    }
+
+    table thead tr th:nth-child(8),
+    table tbody tr td:nth-child(8) {
+        text-align: right;
+    }
+}
+
+.ui-menu-item-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.ui-menu-item-wrapper img {
+    margin-right: 8px;
+}
+
+.ui-menu-item-wrapper span {
+    flex-grow: 1;
+}
+
+.ui-autocomplete {
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+}
+
+/* Confirmation Modal Styles */
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.auth-button.sign-up {
+    background-color: rgb(0, 82, 255);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.auth-button {
+    background: none;
+    border: none;
+    color: rgb(0, 82, 255);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.auth-button:hover {
+    background-color: rgb(0, 70, 220);
+}
+
+.auth-button.sign-up:hover {
+    background-color: rgb(0, 70, 220);
+}
+
+#cancelButton {
+    background-color: white;
+    color: rgb(0, 82, 255);
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin: 0px;
+    border-radius: 24px;
+}
+
+#cancelButton:hover {
+    background-color: rgb(224, 236, 252);
+}
+
+#confirmButton {
+    background-color: rgb(255, 58, 51);
+    color: white;
+    border-radius: 24px;
+}
+
+#confirmButton:hover {
+    background-color: rgb(216, 37, 46);
+}
+
+/* Verification waiting screen styles */
+#emailVerificationContainer {
+    text-align: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+.info-message {
+    color: green;
+    margin-top: 10px;
+}
+
+#resetPasswordForm {
+    align-items: center;
+}
+
+#addCoinButton {
+    border-radius: 100px;
+    border: 1px solid rgb(0, 70, 220);
+    color: rgb(0, 70, 220);
+    background-color: white;
+}
+
+#addCoinButton:hover {
+    background-color: rgb(224, 236, 252);
+}
+
+#signUpModalButton {
+    border-radius: 100px;
+}
+
+#signOutButton {
+    color: #333333;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 24px;
+    margin-right: 0px;
+}
+
+#signOutButton:hover {
+    background-color: rgb(224, 236, 252);
+}
+
+/* Upgrade Modal Styles */
+#upgradeModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#upgradeModal .modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 24px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    position: relative;
+}
+
+#upgradeModal .close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#upgradeModal .close-button:hover,
+#upgradeModal .close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#upgradeModal h2 {
+    text-align: center;
+}
+
+#upgradeModal p {
+    text-align: center;
+}
+
+#upgradeModal ul {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    text-align: center;
+}
+
+#upgradeModal ul li {
+    margin: 10px 0;
+}
+
+#upgradeButton,
+#checkout-button {
+    display: block;
+    width: 100%;
+    max-width: 200px;
+    margin: 20px auto 0;
+    padding: 10px 20px;
+    background-color: rgb(0, 82, 255);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#upgradeButton:hover, 
+#checkout-button:hover {
+    background-color: rgb(0, 70, 220);
+}
+
+#checkout-button{
+    margin-top: 0px;
+    margin-bottom:0px;
+}
+
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background-color: rgb(0, 82, 255);
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: rgb(0, 70, 220);
+}
+
+/* Auth Modal Styles */
+.auth-modal {
+    text-align: center;
+}
+
+.auth-modal h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.auth-modal input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.auth-modal button {
+    background-color: rgb(0, 82, 255);
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.auth-modal button:hover {
+    background-color: rgb(0, 70, 220);
+}
+
+.auth-modal .toggle-form {
+    margin-top: 10px;
+}
+
+.auth-modal .toggle-form a {
+    color: rgb(0, 82, 255);
+    text-decoration: none;
+}
+
+.auth-modal .toggle-form a:hover {
+    text-decoration: underline;
+}
+
+.auth-modal .password-container {
+    display: flex;
+    align-items: center;
+}
+
+.auth-modal .password-container input {
+    flex-grow: 1;
+}
+
+.auth-modal .password-container button {
+    margin-left: 10px;
+    padding: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgb(0, 82, 255);
+}
+
+/* Feedback button */
+#feedbackButton {
+    color: #333333;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 24px;
+    margin-right: 10px;
+}
+
+#feedbackButton:hover {
+    background-color: rgb(224, 236, 252);
+}
+
+/* Feedback Modal */
+#feedbackModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#feedbackModal .modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 24px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    position: relative;
+}
+
+#closeFeedbackModal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#closeFeedbackModal:hover,
+#closeFeedbackModal:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#feedbackForm .form-group {
+    margin-bottom: 20px;
+}
+
+#feedbackForm textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+#submitFeedbackButton {
+    background-color: rgb(0, 82, 255);
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#submitFeedbackButton:hover {
+    background-color: rgb(0, 70, 220);
+}
+
+.toast-container {
+    left: 50%;
+    position: fixed;
+    transform: translate(-50%, 0px);
+    z-index: 9999;
+}
+
+.toast {
+    display: none;
+    background-color: #333;
+    color: #fff;
+    padding: 16px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: fadein 0.1s, fadeout 0.5s 2.5s;
+}
+
+@keyframes fadein {
+    from {top: 0; opacity: 0;}
+    to {top: 20px; opacity: 1;}
+}
+
+@keyframes fadeout {
+    from {top: 20px; opacity: 1;}
+    to {top: 0; opacity: 0;}
+}

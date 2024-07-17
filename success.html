@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Success</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Thank you for upgrading!</h1>
+        <p>Your subscription has been successfully upgraded to premium.</p>
+        <button id="continueButton">Continue to Portfolio</button>
+    </div>
+
+    <script>
+        document.getElementById('continueButton').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('session_id');
+            if (sessionId) {
+                try {
+                    const session = await fetch(`https://api.stripe.com/v1/checkout/sessions/${sessionId}`, {
+                        headers: {
+                            'Authorization': `Bearer sk_test_51LmKU1CF77PCDzZf98VlvaNjDENOXvi7MYW1L0f63lVNf7sbqcKIfpI4kABsGHto5ue79cQ2HyINWZsT7qCG6vRc00VqKzFd0U`
+                        }
+                    }).then(res => res.json());
+
+                    console.log('Fetched session:', session);
+
+                    if (session.metadata && session.metadata.userId) {
+                        const userId = session.metadata.userId;
+                        await fetch('http://localhost:3000/update-subscription-status', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ userId: userId, status: 'premium' })
+                        });
+
+                        window.location.href = 'index.html';
+                    } else {
+                        console.error('UserId not found in session metadata:', session.metadata);
+                    }
+                } catch (error) {
+                    console.error('Error updating subscription status:', error);
+                }
+            } else {
+                console.error('Session ID not found in URL parameters.');
+            }
+        });
+    </script>
+</body>
+</html>
