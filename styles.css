@@ -15,6 +15,7 @@
 }
 
 /* Modal styles */
+/* Modal styles */
 .modal {
     display: none;
     position: fixed;
@@ -23,7 +24,7 @@
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
+    overflow: hidden; /* Prevent background scrolling */
     background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -36,7 +37,11 @@
     max-width: 500px;
     border-radius: 8px;
     position: relative;
+    box-sizing: border-box; /* Ensure padding is included in the width */
+    overflow-y: auto; /* Allow vertical scrolling within the modal */
+    max-height: 80%; /* Ensure modal content doesn't exceed viewport height */
 }
+
 
 .close-button {
     position: absolute;
@@ -425,10 +430,11 @@ th {
 /* Media Queries for Mobile/Responsive Design */
 /* Media Queries for Mobile/Responsive Design */
 @media (max-width: 768px) {
-    .header-container {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
+    .modal-content {
+        width: 95%;
+        margin: 20% auto;
+        padding: 10px;
+        max-height: 80%; /* Ensure modal content doesn't exceed viewport height */
     }
 
     .header-logo {
