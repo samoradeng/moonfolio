@@ -77,7 +77,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const switchToSignIn = document.getElementById('switchToSignIn');
     const addCoinButton = document.getElementById('addCoinButton');
     const addCoinModal = document.getElementById('addCoinModal');
-    
 
     let coinToRemoveIndex = null;
     let portfolio = [];
@@ -99,30 +98,29 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // Close modal when clicking outside the modal content
-window.addEventListener('click', function(event) {
-    modals.forEach(modal => {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
+    window.addEventListener('click', function(event) {
+        modals.forEach(modal => {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
     });
-});
 
-// Enable scrolling within the modal content
-modals.forEach(modal => {
-    modal.querySelector('.modal-content').addEventListener('touchmove', function(event) {
-        // Allow touchmove event on modal content to enable scrolling
-        event.stopPropagation();
-    }, { passive: false });
+    // Enable scrolling within the modal content
+    modals.forEach(modal => {
+        modal.querySelector('.modal-content').addEventListener('touchmove', function(event) {
+            // Allow touchmove event on modal content to enable scrolling
+            event.stopPropagation();
+        }, { passive: false });
 
-    modal.addEventListener('touchmove', function(event) {
-        // Prevent touchmove on modal background to avoid scrolling the background
-        if (event.target === modal) {
-            event.preventDefault();
-        }
-    }, { passive: false });
-});
-    
-    
+        modal.addEventListener('touchmove', function(event) {
+            // Prevent touchmove on modal background to avoid scrolling the background
+            if (event.target === modal) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+    });
+
     const feedbackButton = document.getElementById('feedbackButton');
     const feedbackModal = document.getElementById('feedbackModal');
     const closeFeedbackModal = document.getElementById('closeFeedbackModal');
@@ -779,10 +777,6 @@ modals.forEach(modal => {
             return date.toLocaleDateString('en-GB', options);
         }
         
-        
-        
-        
-
         function attachRemoveEventListeners() {
             document.querySelectorAll('.remove-button').forEach(button => {
                 button.addEventListener('click', function() {
