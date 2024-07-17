@@ -268,7 +268,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const password = signUpPasswordInput.value;
             signUpErrorMessage.textContent = '';
             signUpLoadingIndicator.style.display = 'block';
-
+    
             auth.createUserWithEmailAndPassword(email, password)
                 .then(userCredential => {
                     console.log('User signed up:', userCredential.user);
@@ -292,6 +292,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 });
         });
     }
+    
 
     function showEmailVerificationScreen() {
         authContainer.style.display = 'none';
@@ -355,14 +356,13 @@ document.addEventListener("DOMContentLoaded", function() {
         if (user) {
             if (user.emailVerified) {
                 console.log('User is signed in and verified');
+                userEmail.textContent = user.email;
                 authContainer.style.display = 'none';
                 userContainer.style.display = 'block';
                 emailVerificationContainer.style.display = 'none';
-                userEmail.textContent = user.email;
                 createUserDocumentIfNotExists(user.uid, user.email).then(() => {
                     loadUserData(user.uid).then(() => {
                         updateAuthUI(true);
-                        console.log(`User subscription status: ${userSubscription}`);
                     });
                 });
                 closeModal();
@@ -379,6 +379,34 @@ document.addEventListener("DOMContentLoaded", function() {
             clearLocalStorage();
         }
     });
+
+    
+    async function deDuplicateUsers() {
+        const users = await auth.listUsers();
+        const userMap = {};
+    
+        users.users.forEach(user => {
+            if (!userMap[user.email]) {
+                userMap[user.email] = [];
+            }
+            userMap[user.email].push(user.uid);
+        });
+    
+        for (const email in userMap) {
+            const uids = userMap[email];
+            if (uids.length > 1) {
+                // Keep the first user, delete the rest
+                const [keep, ...toDelete] = uids;
+                for (const uid of toDelete) {
+                    await auth.deleteUser(uid);
+                }
+                console.log(`Deleted duplicate users for ${email}`);
+            }
+        }
+    }
+    
+    deDuplicateUsers().catch(console.error);
+    
 
     function setDataLabels() {
         const headers = Array.from(document.querySelectorAll("th")).map(th => th.textContent);
@@ -1235,25 +1263,20 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function openModal(mode) {
-        if (signInForm && signUpForm) {
-            if (mode === 'Sign In') {
-                signInForm.style.display = 'block';
-                signUpForm.style.display = 'none';
-            } else {
-                signInForm.style.display = 'none';
-                signUpForm.style.display = 'block';
-            }
+        if (mode === 'Sign In') {
+            signInForm.style.display = 'block';
+            signUpForm.style.display = 'none';
+        } else {
+            signInForm.style.display = 'none';
+            signUpForm.style.display = 'block';
         }
-        if (authModal) {
-            authModal.style.display = 'block';
-        }
+        authModal.style.display = 'block';
     }
-
+    
     function closeModal() {
-        if (authModal) {
-            authModal.style.display = 'none';
-        }
+        authModal.style.display = 'none';
     }
+    
 
     attachEventListeners();
 
@@ -1419,12 +1442,11 @@ async function createUserDocumentIfNotExists(uid, email) {
         const userRef = db.collection('users').doc(uid);
         const doc = await userRef.get();
         if (!doc.exists) {
-            const userDoc = {
+            await userRef.set({
                 email: email,
                 portfolio: [],
                 subscription: 'free'
-            };
-            await userRef.set(userDoc);
+            });
             console.log('User document created successfully!');
         } else {
             console.log('Document already exists for user.');
@@ -1434,18 +1456,18 @@ async function createUserDocumentIfNotExists(uid, email) {
     }
 }
 
+
 auth.onAuthStateChanged(user => {
     if (user) {
         if (user.emailVerified) {
             console.log('User is signed in and verified');
+            userEmail.textContent = user.email;
             authContainer.style.display = 'none';
             userContainer.style.display = 'block';
             emailVerificationContainer.style.display = 'none';
-            userEmail.textContent = user.email;
             createUserDocumentIfNotExists(user.uid, user.email).then(() => {
                 loadUserData(user.uid).then(() => {
                     updateAuthUI(true);
-                    console.log(`User subscription status: ${userSubscription}`);
                 });
             });
             closeModal();
@@ -1462,6 +1484,7 @@ auth.onAuthStateChanged(user => {
         clearLocalStorage();
     }
 });
+
 
 document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') {
