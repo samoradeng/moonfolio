@@ -121,6 +121,24 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
+        // Prevent background scroll when touching outside the modal content on iOS
+    modals.forEach(modal => {
+        modal.addEventListener('touchmove', function(event) {
+            if (event.target === modal) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+    });
+    
+        // Close modal when clicking outside the modal content
+    window.addEventListener('click', function(event) {
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                closeModal(modal);
+            }
+        });
+    });
+
         modal.addEventListener('touchmove', function(event) {
             if (event.target === modal) {
                 // Allow modal content to scroll
