@@ -138,47 +138,48 @@
     </div>
 
     <!-- Add Coin Modal -->
-    <div id="addCoinModal" class="modal">
-        <div class="modal-content">
-            <span id="closeAddCoinModal" class="close-button">&times;</span>
-            <h2 id="AddTransactionHeaderText">Add Transaction</h2>
-            <form id="cryptoForm">
-                <div class="form-group">
-                    <label for="coinSearch">Coin Name</label>
-                    <input type="text" id="coinSearch" placeholder="Start typing to search..." required>
-                </div>
-                <div class="form-group">
-                    <label for="amountInvested">Amount Invested (usd)</label>
-                    <input type="number" id="amountInvested" placeholder="e.g., 1000" required>
-                </div>
-                <div class="form-group">
-                    <label for="investmentDate">Investment Date</label>
-                    <input type="date" id="investmentDate" required>
-                </div>
-                <div class="form-group">
-                    <label for="currentMarketCap">Current Market Cap</label>
-                    <input type="text" id="currentMarketCap" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="baseCaseMC">Base Case</label>
-                    <select id="baseCaseMC" required>
-                        <option value="" disabled selected>Select multiplier</option>
-                    </select>
-                    <input type="number" id="baseCaseMCManual" placeholder="Market Cap" disabled>
-                    <input type="number" id="baseCaseMultiplierManual" placeholder="Multiplier (x)" disabled>
-                </div>
-                <div class="form-group">
-                    <label for="moonCaseMC">Moon Case</label>
-                    <select id="moonCaseMC" required>
-                        <option value="" disabled selected>Select multiplier</option>
-                    </select>
-                    <input type="number" id="moonCaseMCManual" placeholder="Market Cap" disabled>
-                    <input type="number" id="moonCaseMultiplierManual" placeholder="Multiplier (x)" disabled>
-                </div>
-                <button id="addTransactionButton" type="submit">Add Transaction</button>
-            </form>
-        </div>
+<div id="addCoinModal" class="modal">
+    <div class="modal-content">
+        <span id="closeAddCoinModal" class="close-button">&times;</span>
+        <h2 id="AddTransactionHeaderText">Add Transaction</h2>
+        <form id="cryptoForm">
+            <div class="form-group">
+                <label for="coinSearch">Coin Name</label>
+                <input type="text" id="coinSearch" placeholder="Start typing to search..." required>
+            </div>
+            <div class="form-group">
+                <label for="amountInvested">Amount Invested (usd)</label>
+                <input type="number" id="amountInvested" placeholder="e.g., 1000" required>
+            </div>
+            <div class="form-group">
+                <label for="investmentDate">Investment Date</label>
+                <input type="date" id="investmentDate" required>
+            </div>
+            <div class="form-group">
+                <label for="currentMarketCap">Current Market Cap</label>
+                <input type="text" id="currentMarketCap" readonly>
+            </div>
+            <div class="form-group">
+                <label for="baseCaseMC">Base Case</label>
+                <select id="baseCaseMC" required>
+                    <option value="" disabled selected>Select multiplier</option>
+                </select>
+                <input type="number" id="baseCaseMCManual" placeholder="Market Cap" disabled>
+                <input type="number" id="baseCaseMultiplierManual" placeholder="Multiplier (x)" disabled>
+            </div>
+            <div class="form-group">
+                <label for="moonCaseMC">Moon Case</label>
+                <select id="moonCaseMC" required>
+                    <option value="" disabled selected>Select multiplier</option>
+                </select>
+                <input type="number" id="moonCaseMCManual" placeholder="Market Cap" disabled>
+                <input type="number" id="moonCaseMultiplierManual" placeholder="Multiplier (x)" disabled>
+            </div>
+            <button id="addTransactionButton" type="submit">Add Transaction</button>
+        </form>
     </div>
+</div>
+
 
     <!-- Confirmation Modal -->
     <div id="confirmationModal" class="modal">
