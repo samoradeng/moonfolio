@@ -20,6 +20,7 @@
     display: none;
     position: fixed;
     z-index: 1000;
+    margin-top: 0px;
     left: 0;
     top: 0;
     width: 100%;
@@ -32,7 +33,7 @@
 .modal-content {
     background-color: #fff;
     margin: 10% auto;
-    padding: 0; /* Remove padding here */
+    padding: 0;
     border: 1px solid #888;
     width: 80%;
     max-width: 500px;
@@ -72,6 +73,12 @@
     text-decoration: none;
     cursor: pointer;
 }
+
+/* Add these styles to ensure proper behavior on mobile */
+body.modal-open {
+    overflow: hidden;
+}
+
 
 
 /* Other existing styles */
