@@ -12,7 +12,7 @@ admin.initializeApp({
 const db = admin.firestore();
 const app = express();
 
-// Use CORS
+// Use CORS and specify allowed origins
 app.use(cors({
   origin: 'https://www.moonfolio.fyi' // replace with your frontend URL
 }));
@@ -20,30 +20,36 @@ app.use(cors({
 app.use(bodyParser.json());
 
 app.post('/create-checkout-session', async (req, res) => {
-    const userId = req.body.userId;
-    console.log(`Creating checkout session for user: ${userId}`);
-    const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [{
-            price_data: {
-                currency: 'usd',
-                product_data: {
-                    name: 'Premium Plan',
+    try {
+        const userId = req.body.userId;
+        console.log(`Creating checkout session for user: ${userId}`);
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [{
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: 'Premium Plan',
+                    },
+                    unit_amount: 999, // Amount in cents
                 },
-                unit_amount: 999, // Amount in cents
-            },
-            quantity: 1,
-        }],
-        mode: 'payment',
-        success_url: `https://moonfolio.fyi/success.html?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: 'https://moonfolio.fyi/cancel.html',
-        metadata: {
-            userId: userId
-        }
-    });
-    console.log(`Checkout session created: ${session.id}`);
-    res.json({ id: session.id });
+                quantity: 1,
+            }],
+            mode: 'payment',
+            success_url: `https://moonfolio.fyi/success.html?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: 'https://moonfolio.fyi/cancel.html',
+            metadata: {
+                userId: userId
+            }
+        });
+        console.log(`Checkout session created: ${session.id}`);
+        res.json({ id: session.id });
+    } catch (error) {
+        console.error(`Error creating checkout session: ${error.message}`);
+        res.status(500).json({ error: 'Failed to create checkout session' });
+    }
 });
+
 
 const endpointSecret = 'whsec_BeJ6ntaBEcQj7viBZbe3Ni1Yn4PRQOUl';
 
