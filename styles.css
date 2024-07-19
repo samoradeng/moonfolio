@@ -47,7 +47,7 @@
     position: sticky;
     top: 0;
     background-color: #fff;
-    padding: 16px;
+    padding: 24px;
     z-index: 1;
     display: flex;
     justify-content: space-between;
@@ -85,6 +85,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px 24px; /* Adjust padding */
+}
+
+#signUpButton {
+    font-size: 16px;
+}
+
+#signInButton {
+    font-size: 16px;
 }
 
 #authModal .modal-body {
@@ -441,15 +449,27 @@ th {
 .password-container {
     display: flex;
     align-items: center;
+    width: calc(100% - 24px); /* Ensure the same width as input fields */
+    padding: 0; /* Remove padding from the container */
+    margin: 8px 0;
 }
 
-#togglePassword,
-#toggleSignUpPassword {
+.password-container input {
+    flex-grow: 1;
+    padding: 12px;
+    margin: 0; /* Remove margin to align with other input fields */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.password-container button {
     margin-left: 8px;
-    padding: 10px;
+    padding: 12px;
     background: none;
     border: none;
     cursor: pointer;
+    color: rgb(0, 82, 255);
 }
 
 .error-message {
@@ -850,16 +870,27 @@ th {
 .auth-modal .password-container {
     display: flex;
     align-items: center;
+    width: calc(100% - 24px); /* Ensure the same width as input fields */
+    padding: 0; /* Remove padding from the container */
+    margin: 8px 0;
 }
 
 .auth-modal .password-container input {
     flex-grow: 1;
+    padding: 12px;
+    margin: 0; /* Remove margin to align with other input fields */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
 }
 
 .auth-modal .password-container button {
-    margin-left: 10px;
+    margin-left: 8px;
     padding: 12px;
     background: none;
+    border: none;
+    cursor: pointer;
+    color: rgb(0, 82, 255);
 }
 
 /* Feedback button */
