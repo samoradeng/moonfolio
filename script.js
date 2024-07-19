@@ -1225,32 +1225,23 @@ async function savePortfolioToFirebase() {
     
         const user = firebase.auth().currentUser;
         if (user) {
-            try {
-                const response = await fetch('https://www.moonfolio.fyi/create-checkout-session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ userId: user.uid })
-                });
-    
-                if (!response.ok) {
-                    throw new Error('Failed to create checkout session');
-                }
-    
-                const session = await response.json();
-                const result = await stripe.redirectToCheckout({ sessionId: session.id });
-                
-                if (result.error) {
-                    console.error(result.error.message);
-                }
-            } catch (error) {
-                console.error('Error during the upgrade process:', error);
+            const response = await fetch('https://your-vercel-app-name.vercel.app/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId: user.uid })
+            });
+            const session = await response.json();
+            const result = await stripe.redirectToCheckout({ sessionId: session.id });
+            if (result.error) {
+                console.error(result.error.message);
             }
         } else {
             alert('You need to sign in first.');
         }
     }
+    
     
 
     function showUpgradeModal() {
