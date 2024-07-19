@@ -1225,22 +1225,32 @@ async function savePortfolioToFirebase() {
     
         const user = firebase.auth().currentUser;
         if (user) {
-            const response = await fetch('https://moonfolio-nine.vercel.app/create-checkout-session', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userId: user.uid })
-            });
-            const session = await response.json();
-            const result = await stripe.redirectToCheckout({ sessionId: session.id });
-            if (result.error) {
-                console.error(result.error.message);
+            try {
+                const response = await fetch('https://moonfolio-nine.vercel.app/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userId: user.uid })
+                });
+    
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+    
+                const session = await response.json();
+                const result = await stripe.redirectToCheckout({ sessionId: session.id });
+                if (result.error) {
+                    console.error(result.error.message);
+                }
+            } catch (error) {
+                console.error('Failed to fetch:', error.message);
             }
         } else {
             alert('You need to sign in first.');
         }
     }
+    
     
     
     
