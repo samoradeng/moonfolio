@@ -26,6 +26,10 @@ app.options('*', cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+app.get('/test', (req, res) => {
+    res.send('Server is running and accessible');
+});
+
 app.post('/create-checkout-session', async (req, res) => {
     try {
         const userId = req.body.userId;
