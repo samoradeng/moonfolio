@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const stripe = require('stripe')('sk_test_51LmKU1CF77PCDzZf98VlvaNjDENOXvi7MYW1L0f63lVNf7sbqcKIfpI4kABsGHto5ue79cQ2HyINWZsT7qCG6vRc00VqKzFd0U');
+const stripe = require('stripe')('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');
 const bodyParser = require('body-parser');
 const admin = require('firebase-admin');
 const serviceAccount = require('./serviceAccountKey.json');
@@ -30,8 +30,8 @@ app.post('/create-checkout-session', async (req, res) => {
             quantity: 1,
         }],
         mode: 'payment',
-        success_url: `http://127.0.0.1:5500/success.html?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: 'http://127.0.0.1:5500/cancel.html',
+        success_url: `https://moonfolio.fyi/success.html?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: 'https://moonfolio.fyi/cancel.html',
         metadata: {
             userId: userId
         }
@@ -40,7 +40,7 @@ app.post('/create-checkout-session', async (req, res) => {
     res.json({ id: session.id });
 });
 
-const endpointSecret = 'whsec_94Kc67Ygkmsg32cBRwJYbYOyy9mIi';
+const endpointSecret = 'whsec_BeJ6ntaBEcQj7viBZbe3Ni1Yn4PRQOUl';
 
 app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (request, response) => {
     const sig = request.headers['stripe-signature'];
