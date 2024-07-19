@@ -669,7 +669,7 @@ async function savePortfolioToFirebase() {
                 return;
             }
 
-            if (userSubscription === 'free' && portfolio.length >= 4) {
+            if (userSubscription === 'free' && portfolio.length >= 3) {
                 upgradeModal.style.display = 'block';
                 return;
             }
