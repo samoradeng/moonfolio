@@ -26,6 +26,11 @@ app.options('*', cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Define a route for the root URL
+app.get('/', (req, res) => {
+    res.send('Welcome to Moonfolio!');
+  });
+
 app.get('/test', (req, res) => {
     res.send('Server is running and accessible');
 });
