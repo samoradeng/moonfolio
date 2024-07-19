@@ -14,10 +14,17 @@ const app = express();
 
 // Use CORS and specify allowed origins
 app.use(cors({
-  origin: 'https://www.moonfolio.fyi' // replace with your frontend URL
+  origin: ['http://127.0.0.1:5500', 'https://www.moonfolio.fyi'] // Add your local dev server and production domain
 }));
 
 app.use(bodyParser.json());
+
+// Handle preflight requests
+app.options('*', cors({
+  origin: ['http://127.0.0.1:5500', 'https://www.moonfolio.fyi'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.post('/create-checkout-session', async (req, res) => {
     try {
@@ -43,13 +50,15 @@ app.post('/create-checkout-session', async (req, res) => {
             }
         });
         console.log(`Checkout session created: ${session.id}`);
+        res.setHeader('Access-Control-Allow-Origin', 'http://127.0.0.1:5500'); // Allow your local dev server
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         res.json({ id: session.id });
     } catch (error) {
         console.error(`Error creating checkout session: ${error.message}`);
         res.status(500).json({ error: 'Failed to create checkout session' });
     }
 });
-
 
 const endpointSecret = 'whsec_BeJ6ntaBEcQj7viBZbe3Ni1Yn4PRQOUl';
 
