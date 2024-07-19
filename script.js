@@ -1225,7 +1225,7 @@ async function savePortfolioToFirebase() {
 
         const user = firebase.auth().currentUser;
         if (user) {
-            const response = await fetch('http://localhost:3000/create-checkout-session', {
+            const response = await fetch('http://www.moonfolio.fyi/create-checkout-session', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1540,4 +1540,3 @@ document.addEventListener('visibilitychange', function() {
         attachEventListeners();
     }
 });
- 
