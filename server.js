@@ -12,120 +12,126 @@ admin.initializeApp({
 const db = admin.firestore();
 const app = express();
 
-// Use CORS and specify allowed origins
-app.use(cors({
-  origin: ['http://127.0.0.1:5500', 'https://www.moonfolio.fyi'] // Add your local dev server and production domain
-}));
+// Use dynamic CORS middleware
+const allowedOrigins = ['http://127.0.0.1:5500', 'https://www.moonfolio.fyi'];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
 
 app.use(bodyParser.json());
 
 // Handle preflight requests
-app.options('*', cors({
-  origin: ['http://127.0.0.1:5500', 'https://www.moonfolio.fyi'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.sendStatus(200);
+});
 
 // Define a route for the root URL
 app.get('/', (req, res) => {
-    res.send('Welcome to Moonfolio!');
-  });
+  res.send('Welcome to Moonfolio!');
+});
 
 app.get('/test', (req, res) => {
-    res.send('Server is running and accessible');
+  res.send('Server is running and accessible');
 });
 
 app.post('/create-checkout-session', async (req, res) => {
-    try {
-        const userId = req.body.userId;
-        console.log(`Creating checkout session for user: ${userId}`);
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: [{
-                price_data: {
-                    currency: 'usd',
-                    product_data: {
-                        name: 'Premium Plan',
-                    },
-                    unit_amount: 999, // Amount in cents
-                },
-                quantity: 1,
-            }],
-            mode: 'payment',
-            success_url: `https://moonfolio.fyi/success.html?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: 'https://moonfolio.fyi/cancel.html',
-            metadata: {
-                userId: userId
-            }
-        });
-        console.log(`Checkout session created: ${session.id}`);
-        res.setHeader('Access-Control-Allow-Origin', 'http://127.0.0.1:5500'); // Allow your local dev server
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        res.json({ id: session.id });
-    } catch (error) {
-        console.error(`Error creating checkout session: ${error.message}`);
-        res.status(500).json({ error: 'Failed to create checkout session' });
-    }
+  try {
+    const userId = req.body.userId;
+    console.log(`Creating checkout session for user: ${userId}`);
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'Premium Plan',
+          },
+          unit_amount: 999, // Amount in cents
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `https://moonfolio.fyi/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: 'https://moonfolio.fyi/cancel.html',
+      metadata: {
+        userId: userId
+      }
+    });
+    console.log(`Checkout session created: ${session.id}`);
+    res.json({ id: session.id });
+  } catch (error) {
+    console.error(`Error creating checkout session: ${error.message}`);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
 });
 
 const endpointSecret = 'whsec_BeJ6ntaBEcQj7viBZbe3Ni1Yn4PRQOUl';
 
 app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (request, response) => {
-    const sig = request.headers['stripe-signature'];
+  const sig = request.headers['stripe-signature'];
 
-    let event;
+  let event;
 
+  try {
+    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    console.log('Webhook verified');
+  } catch (err) {
+    console.error(`Webhook Error: ${err.message}`);
+    response.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
+
+  console.log(`Event received: ${event.type}`);
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const userId = session.metadata.userId;
+    console.log(`Checkout session completed for user: ${userId}`);
     try {
-        event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
-        console.log('Webhook verified');
-    } catch (err) {
-        console.error(`Webhook Error: ${err.message}`);
-        response.status(400).send(`Webhook Error: ${err.message}`);
-        return;
+      await updateSubscriptionStatus(userId, 'premium');
+      console.log(`Subscription status updated for user: ${userId}`);
+    } catch (error) {
+      console.error(`Failed to update subscription status for user: ${userId}`, error);
     }
+  }
 
-    console.log(`Event received: ${event.type}`);
-
-    if (event.type === 'checkout.session.completed') {
-        const session = event.data.object;
-        const userId = session.metadata.userId;
-        console.log(`Checkout session completed for user: ${userId}`);
-        try {
-            await updateSubscriptionStatus(userId, 'premium');
-            console.log(`Subscription status updated for user: ${userId}`);
-        } catch (error) {
-            console.error(`Failed to update subscription status for user: ${userId}`, error);
-        }
-    }
-
-    response.json({ received: true });
+  response.json({ received: true });
 });
 
 async function updateSubscriptionStatus(userId, status) {
-    try {
-        const userRef = db.collection('users').doc(userId);
-        const userDoc = await userRef.get();
-        if (userDoc.exists) {
-            console.log(`User document found for user: ${userId}, updating subscription status to ${status}`);
-            await userRef.update({ subscription: status });
-            console.log(`Subscription status updated for user: ${userId}`);
-        } else {
-            console.error(`No user document found for user: ${userId}`);
-        }
-    } catch (error) {
-        console.error(`Error updating subscription status for user: ${userId}`, error);
+  try {
+    const userRef = db.collection('users').doc(userId);
+    const userDoc = await userRef.get();
+    if (userDoc.exists) {
+      console.log(`User document found for user: ${userId}, updating subscription status to ${status}`);
+      await userRef.update({ subscription: status });
+      console.log(`Subscription status updated for user: ${userId}`);
+    } else {
+      console.error(`No user document found for user: ${userId}`);
     }
+  } catch (error) {
+    console.error(`Error updating subscription status for user: ${userId}`, error);
+  }
 }
 
 app.post('/update-subscription-status', async (req, res) => {
-    const { userId, status } = req.body;
-    try {
-        await updateSubscriptionStatus(userId, status);
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to update subscription status' });
-    }
+  const { userId, status } = req.body;
+  try {
+    await updateSubscriptionStatus(userId, status);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update subscription status' });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
