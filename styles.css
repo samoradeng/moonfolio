@@ -838,6 +838,7 @@ th {
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+    font-size: 16px; /* Ensure minimum font size */
 }
 
 .auth-modal button {
@@ -882,6 +883,7 @@ th {
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+    font-size: 16px; /* Ensure minimum font size */
 }
 
 .auth-modal .password-container button {
@@ -961,6 +963,7 @@ th {
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+    font-size: 16px; /* Ensure minimum font size */
 }
 
 #feedbackForm textarea {
@@ -1007,4 +1010,19 @@ th {
 @keyframes fadeout {
     from {top: 20px; opacity: 1;}
     to {top: 0; opacity: 0;}
+}
+
+/* Ensure minimum font size for input fields */
+input,
+select,
+textarea {
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    input,
+    select,
+    textarea {
+        font-size: 16px; /* Ensure minimum font size on tablet and mobile */
+    }
 }
