@@ -11,7 +11,12 @@ admin.initializeApp({
 
 const db = admin.firestore();
 const app = express();
-app.use(cors());
+
+// Use CORS
+app.use(cors({
+  origin: 'https://www.moonfolio.fyi' // replace with your frontend URL
+}));
+
 app.use(bodyParser.json());
 
 app.post('/create-checkout-session', async (req, res) => {
@@ -89,7 +94,6 @@ async function updateSubscriptionStatus(userId, status) {
     }
 }
 
-
 app.post('/update-subscription-status', async (req, res) => {
     const { userId, status } = req.body;
     try {
@@ -99,22 +103,6 @@ app.post('/update-subscription-status', async (req, res) => {
         res.status(500).json({ error: 'Failed to update subscription status' });
     }
 });
-
-async function updateSubscriptionStatus(userId, status) {
-    try {
-        const userRef = db.collection('users').doc(userId);
-        const userDoc = await userRef.get();
-        if (userDoc.exists) {
-            console.log(`User document found for user: ${userId}, updating subscription status to ${status}`);
-            await userRef.update({ subscription: status });
-            console.log(`Subscription status updated for user: ${userId}`);
-        } else {
-            console.error(`No user document found for user: ${userId}`);
-        }
-    } catch (error) {
-        console.error(`Error updating subscription status for user: ${userId}`, error);
-    }
-}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
