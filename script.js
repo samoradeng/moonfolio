@@ -1540,3 +1540,4 @@ document.addEventListener('visibilitychange', function() {
         attachEventListeners();
     }
 });
+ 
