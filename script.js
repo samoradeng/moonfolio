@@ -1225,7 +1225,7 @@ async function savePortfolioToFirebase() {
     
         const user = firebase.auth().currentUser;
         if (user) {
-            const response = await fetch('https://moonfolio.vercel.app/create-checkout-session', {
+            const response = await fetch('https://moonfolio-nine.vercel.app/create-checkout-session', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
