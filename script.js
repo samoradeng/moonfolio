@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const moonCaseMCManualEl = document.getElementById("moonCaseMCManual");
     const baseCaseBalanceEl = document.getElementById("baseCaseBalance");
     const moonCaseBalanceEl = document.getElementById("moonCaseBalance");
-
     const confirmationModal = document.getElementById("confirmationModal");
     const closeConfirmationModal = document.getElementById("closeConfirmationModal");
     const cancelButton = document.getElementById("cancelButton");
@@ -49,7 +48,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const checkoutButton = document.getElementById('checkout-button');
     const baseCaseMultiplierManualEl = document.getElementById("baseCaseMultiplierManual");
     const moonCaseMultiplierManualEl = document.getElementById("moonCaseMultiplierManual");
-
     const signInButton = document.getElementById('signInButton');
     const signUpButton = document.getElementById('signUpButton');
     const signOutButton = document.getElementById('signOutButton');
@@ -77,6 +75,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const switchToSignIn = document.getElementById('switchToSignIn');
     const addCoinButton = document.getElementById('addCoinButton');
     const addCoinModal = document.getElementById('addCoinModal');
+    const stripe = Stripe('pk_live_51LmKU1CF77PCDzZf39h4Who3XS36f4S2BVluv9OLieaQqUtkAefVmukrf03RVAlTeeHXj4h99zsNP8mfdw7RCzyM00P8UFIoYJ'); // Your live mode publishable key
+
 
     let coinToRemoveIndex = null;
     let portfolio = [];
@@ -87,9 +87,14 @@ document.addEventListener("DOMContentLoaded", function() {
     let coinData = [];
     let userSubscription = 'free';
 
+    function showEmailVerificationScreen() {
+        authContainer.style.display = 'none';
+        emailVerificationContainer.style.display = 'block';
+    }
+
     const modals = document.querySelectorAll('.modal');
     const closeModalButtons = document.querySelectorAll('.close-button');
-    
+
     closeModalButtons.forEach(button => {
         button.addEventListener('click', function() {
             const modal = button.closest('.modal');
@@ -105,6 +110,8 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     });
+
+    
 
     // Enable scrolling within the modal content
     modals.forEach(modal => {
@@ -235,13 +242,14 @@ document.addEventListener("DOMContentLoaded", function() {
             toggleForms('Sign Up');
         });
     }
-
+    
     if (switchToSignIn) {
         switchToSignIn.addEventListener('click', function(event) {
             event.preventDefault();
             toggleForms('Sign In');
         });
     }
+    
 
     if (forgotPasswordLink) {
         forgotPasswordLink.addEventListener('click', function(event) {
@@ -268,7 +276,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const password = signUpPasswordInput.value;
             signUpErrorMessage.textContent = '';
             signUpLoadingIndicator.style.display = 'block';
-    
+
             auth.createUserWithEmailAndPassword(email, password)
                 .then(userCredential => {
                     console.log('User signed up:', userCredential.user);
@@ -292,11 +300,21 @@ document.addEventListener("DOMContentLoaded", function() {
                 });
         });
     }
-    
 
-    function showEmailVerificationScreen() {
-        authContainer.style.display = 'none';
-        emailVerificationContainer.style.display = 'block';
+    if (resendVerificationButton) {
+        resendVerificationButton.addEventListener('click', function() {
+            const user = auth.currentUser;
+            if (user) {
+                user.sendEmailVerification().then(() => {
+                    resendVerificationMessage.textContent = 'Verification email sent.';
+                    resendVerificationMessage.style.display = 'block';
+                }).catch(error => {
+                    console.error('Error sending verification email:', error.message);
+                    resendVerificationMessage.textContent = 'Error sending verification email. Please try again later.';
+                    resendVerificationMessage.style.display = 'block';
+                });
+            }
+        });
     }
 
     if (signInButton) {
@@ -354,22 +372,26 @@ document.addEventListener("DOMContentLoaded", function() {
 
     auth.onAuthStateChanged(user => {
         if (user) {
-            if (user.emailVerified) {
-                console.log('User is signed in and verified');
-                userEmail.textContent = user.email;
-                authContainer.style.display = 'none';
-                userContainer.style.display = 'block';
-                emailVerificationContainer.style.display = 'none';
-                createUserDocumentIfNotExists(user.uid, user.email).then(() => {
-                    loadUserData(user.uid).then(() => {
-                        updateAuthUI(true);
+            user.reload().then(() => {
+                if (user.emailVerified) {
+                    console.log('User is signed in and verified');
+                    userEmail.textContent = user.email;
+                    authContainer.style.display = 'none';
+                    userContainer.style.display = 'block';
+                    emailVerificationContainer.style.display = 'none';
+                    createUserDocumentIfNotExists(user.uid, user.email).then(() => {
+                        loadUserData(user.uid).then(() => {
+                            updateAuthUI(true);
+                        });
                     });
-                });
-                closeModal();
-            } else {
-                console.log('User is signed in but not verified');
-                showEmailVerificationScreen();
-            }
+                    closeModal();
+                } else {
+                    console.log('User is signed in but not verified');
+                    showEmailVerificationScreen(); // Ensure this is correctly called
+                }
+            }).catch(error => {
+                console.error('Error reloading user:', error);
+            });
         } else {
             console.log('No user is signed in');
             updateAuthUI(false);
@@ -380,34 +402,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    
-    async function deDuplicateUsers() {
-        const users = await auth.listUsers();
-        const userMap = {};
-    
-        users.users.forEach(user => {
-            if (!userMap[user.email]) {
-                userMap[user.email] = [];
-            }
-            userMap[user.email].push(user.uid);
-        });
-    
-        for (const email in userMap) {
-            const uids = userMap[email];
-            if (uids.length > 1) {
-                // Keep the first user, delete the rest
-                const [keep, ...toDelete] = uids;
-                for (const uid of toDelete) {
-                    await auth.deleteUser(uid);
-                }
-                console.log(`Deleted duplicate users for ${email}`);
-            }
-        }
-    }
-    
-    deDuplicateUsers().catch(console.error);
-    
-
     function setDataLabels() {
         const headers = Array.from(document.querySelectorAll("th")).map(th => th.textContent);
         document.querySelectorAll("tbody tr").forEach(row => {
@@ -417,8 +411,35 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Call setDataLabels initially and whenever the portfolio table is updated
     setDataLabels();
+
+    // Fetch the latest prices for all coins in the portfolio
+async function updatePortfolioPrices() {
+    for (const coin of portfolio) {
+        try {
+            const { currentPrice, marketCap, circulatingSupply } = await fetchCurrentPriceAndMarketCap(coin.id);
+            const currentValue = coin.coinsBought * currentPrice;
+            const profit = currentValue - coin.invested;
+            coin.current = currentValue;
+            coin.profit = profit;
+            coin.currentPrice = currentPrice;
+            coin.marketCap = marketCap;
+
+            const today = new Date().toISOString().split('T')[0];
+            const history = coin.history.find(entry => entry.date === today);
+            if (!history) {
+                coin.history.push({
+                    date: today,
+                    price: currentPrice
+                });
+            }
+        } catch (error) {
+            console.error(`Error updating current price or market cap: ${error.message}`);
+        }
+    }
+
+    savePortfolioToFirebase(); // Save the updated portfolio to Firebase
+}
 
     async function loadUserData(uid) {
         try {
@@ -427,6 +448,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.log('Document data:', doc.data());
                 portfolio = doc.data().portfolio || [];
                 userSubscription = doc.data().subscription || 'free';
+                await updatePortfolioPrices(); // Fetch the latest prices from CoinGecko
                 localStorage.setItem('portfolio', JSON.stringify(portfolio));
                 updatePortfolioTable();
                 updateTotals();
@@ -470,6 +492,22 @@ document.addEventListener("DOMContentLoaded", function() {
         // Any additional premium features enabling logic here
     }
 
+    // Add this function to save portfolio updates to Firebase
+async function savePortfolioToFirebase() {
+    const user = auth.currentUser;
+    if (user) {
+        try {
+            await db.collection('users').doc(user.uid).set({
+                portfolio: portfolio,
+                subscription: userSubscription
+            }, { merge: true }); // Use merge to avoid overwriting the entire document
+            console.log('Portfolio saved to Firebase!');
+        } catch (error) {
+            console.error('Error saving portfolio to Firebase:', error);
+        }
+    }
+}
+
     async function saveUserData(uid) {
         try {
             await db.collection('users').doc(uid).set({
@@ -481,6 +519,7 @@ document.addEventListener("DOMContentLoaded", function() {
             console.error('Error saving user data:', error);
         }
     }
+    
 
     const multipliers = [2, 5, 10, 20, 50, 100, 250, 500, 1000, 1500];
 
@@ -608,81 +647,63 @@ document.addEventListener("DOMContentLoaded", function() {
     if (cryptoForm) {
         cryptoForm.addEventListener("submit", function(event) {
             event.preventDefault();
-    
+
             const investmentDate = document.getElementById("investmentDate").value;
-            // Normalize the investment date to UTC to avoid timezone issues
-        const normalizedInvestmentDate = normalizeDateToUTC(investmentDate);
+            const normalizedInvestmentDate = normalizeDateToUTC(investmentDate);
+            const formattedDate = formatDate(normalizedInvestmentDate);
 
-        // Use normalized date for fetching historical prices
-        const formattedDate = formatDate(normalizedInvestmentDate);
-
-        console.log(`Normalized Date for Storage: ${normalizedInvestmentDate}`);
-        console.log(`Formatted Date for Display: ${normalizeDateForDisplay(normalizedInvestmentDate)}`);
+            console.log(`Normalized Date for Storage: ${normalizedInvestmentDate}`);
+            console.log(`Formatted Date for Display: ${normalizeDateForDisplay(normalizedInvestmentDate)}`);
             const today = new Date().toISOString().split('T')[0];
             const now = new Date();
             const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-    
+
             if (investmentDate > localDate) {
                 alert('The investment date cannot be in the future.');
                 return;
             }
-    
-            
-    
-            if (investmentDate > today) {
-                alert('The investment date cannot be in the future.');
-                return;
-            }
-    
-            if (new Date(investmentDate) > new Date(today)) {
-                alert('The investment date cannot be in the future.');
-                return;
-            }
-    
+
             if (auth.currentUser === null && portfolio.length >= 1) {
                 addCoinModal.style.display = 'none';
                 openModal('Sign Up');
                 return;
             }
-    
+
             if (userSubscription === 'free' && portfolio.length >= 4) {
                 upgradeModal.style.display = 'block';
                 return;
             }
-    
+
             const coinId = coinSearch.data('coin-id');
             if (!coinId) {
                 alert('Please select a valid coin.');
                 return;
             }
-    
+
             const coinName = coinSearch.val().trim();
             const amountInvested = parseFloat(document.getElementById("amountInvested").value);
             const currentMarketCap = parseFloat(currentMarketCapEl.value.replace(/,/g, ''));
-    
+
             const baseCaseMC = baseCaseMCManualEl.value ? parseFloat(baseCaseMCManualEl.value) : parseFloat(baseCaseMCEl.value);
             const moonCaseMC = moonCaseMCManualEl.value ? parseFloat(moonCaseMCManualEl.value) : parseFloat(moonCaseMCEl.value);
-    
-    
+
             console.log(`Fetching historical price for ${coinId} on ${formattedDate}`);
-    
+
             fetchHistoricalPrice(coinId, formattedDate)
                 .then(investmentPrice => {
                     const coinsBought = amountInvested / investmentPrice;
-    
+
                     fetchCurrentPriceAndMarketCap(coinId)
                         .then(({ currentPrice, marketCap, circulatingSupply }) => {
                             const currentValue = coinsBought * currentPrice;
                             const profit = currentValue - amountInvested;
-    
-                            // Calculate base case and moon case target prices based on initial investment price and multiplier
+
                             const baseCaseTargetPrice = investmentPrice * (baseCaseMC / currentMarketCap);
                             const moonCaseTargetPrice = investmentPrice * (moonCaseMC / currentMarketCap);
-    
-                            // Calculate new base case and moon case ROI based on the current price and target prices
+
                             const baseCaseROI = (baseCaseTargetPrice / currentPrice).toFixed(2);
                             const moonCaseROI = (moonCaseTargetPrice / currentPrice).toFixed(2);
-    
+
                             fetchCoinImage(coinId)
                                 .then(image => {
                                     const coin = {
@@ -695,7 +716,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         invested: amountInvested,
                                         current: currentValue,
                                         profit: profit,
-                                        date: normalizedInvestmentDate, // Store the normalized date
+                                        date: normalizedInvestmentDate,
                                         coinsBought: coinsBought,
                                         baseCaseMC: baseCaseMC,
                                         baseCaseROI: baseCaseROI,
@@ -708,11 +729,11 @@ document.addEventListener("DOMContentLoaded", function() {
                                             price: currentPrice
                                         }]
                                     };
-    
+
                                     portfolio.push(coin);
                                     totalInvestment += amountInvested;
                                     totalProfit += profit;
-    
+
                                     localStorage.setItem('portfolio', JSON.stringify(portfolio));
                                     if (auth.currentUser) {
                                         saveUserData(auth.currentUser.uid);
@@ -738,8 +759,14 @@ document.addEventListener("DOMContentLoaded", function() {
                     console.error(`Error fetching data: ${error.message}`);
                 });
                 addCoinModal.style.display = 'none';
-                
         });
+
+        function addTransaction(transaction) {
+            portfolio.push(transaction);
+            updatePortfolioTable();
+            updateTotals();
+            savePortfolioToFirebase(); // Save updates to Firebase
+        }
 
         function updatePortfolioTable() {
             console.log('Updating portfolio table...');
@@ -747,13 +774,13 @@ document.addEventListener("DOMContentLoaded", function() {
             portfolio.forEach((coin, index) => {
                 const baseCaseAmount = (coin.baseCaseROI * coin.current).toFixed(2);
                 const moonCaseAmount = (coin.moonCaseROI * coin.current).toFixed(2);
-        
+
                 const formattedProfit = coin.profit < 0 
                     ? `-$${formatNumberWithCommas(Math.abs(coin.profit).toFixed(2))}` 
                     : `+$${formatNumberWithCommas(coin.profit.toFixed(2))}`;
-        
+
                 const formattedDate = formatDateToUTC(coin.date);
-        
+
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${index + 1}</td> <!-- Coin number column -->
@@ -774,7 +801,7 @@ document.addEventListener("DOMContentLoaded", function() {
             });
             attachRemoveEventListeners();
         }
-        
+
         function formatDateToUTC(dateString) {
             const date = new Date(dateString + 'T00:00:00Z');
             const year = date.getUTCFullYear();
@@ -782,29 +809,26 @@ document.addEventListener("DOMContentLoaded", function() {
             const day = String(date.getUTCDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
-        
+
         function normalizeDateToUTC(dateString) {
             const date = new Date(dateString);
             const utcYear = date.getUTCFullYear();
             const utcMonth = ('0' + (date.getUTCMonth() + 1)).slice(-2);
             const utcDay = ('0' + date.getUTCDate()).slice(-2);
             return `${utcYear}-${utcMonth}-${utcDay}`;
-        }        
-        
+        }
+
         function normalizeDateForDisplay(dateString) {
-            // Create a Date object from the date string
             const date = new Date(dateString);
-        
-            // Check if the input date string is valid
+
             if (isNaN(date.getTime())) {
                 throw new Error('Invalid date format');
             }
-        
-            // Format options for the date display
+
             const options = { day: '2-digit', month: 'long', year: 'numeric' };
             return date.toLocaleDateString('en-GB', options);
         }
-        
+
         function attachRemoveEventListeners() {
             document.querySelectorAll('.remove-button').forEach(button => {
                 button.addEventListener('click', function() {
@@ -849,7 +873,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function formatDisplayDate(dateString) {
-        const date = new Date(dateString + 'T00:00:00Z'); // Ensure date is parsed as UTC
+        const date = new Date(dateString + 'T00:00:00Z');
         const options = { day: '2-digit', month: 'long', year: 'numeric' };
         const formattedDate = date.toLocaleDateString('en-GB', options);
         return formattedDate;
@@ -1062,7 +1086,19 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         if (resendVerificationButton) {
-            resendVerificationButton.addEventListener('click', resendVerificationEmail);
+            resendVerificationButton.addEventListener('click', function() {
+                const user = auth.currentUser;
+                if (user) {
+                    user.sendEmailVerification().then(() => {
+                        resendVerificationMessage.textContent = 'Verification email sent.';
+                        resendVerificationMessage.style.display = 'block';
+                    }).catch(error => {
+                        console.error('Error sending verification email:', error.message);
+                        resendVerificationMessage.textContent = 'Error sending verification email. Please try again later.';
+                        resendVerificationMessage.style.display = 'block';
+                    });
+                }
+            });
         }
 
         if (checkoutButton) {
@@ -1184,20 +1220,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    function resendVerificationEmail() {
-        const user = auth.currentUser;
-        if (user) {
-            user.sendEmailVerification().then(() => {
-                resendVerificationMessage.textContent = 'Verification email sent.';
-                resendVerificationMessage.style.display = 'block';
-            }).catch(error => {
-                console.error('Error sending verification email:', error.message);
-                resendVerificationMessage.textContent = 'Error sending verification email. Please try again later.';
-                resendVerificationMessage.style.display = 'block';
-            });
-        }
-    }
-
     async function upgradeToPremium() {
         upgradeModal.style.display = 'none';
 
@@ -1230,53 +1252,58 @@ document.addEventListener("DOMContentLoaded", function() {
         addCoinModal.style.display = 'none';
     }
 
-    function togglePasswordVisibility() {
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            togglePasswordButton.textContent = 'Hide';
+    function togglePasswordVisibility(button, input) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.textContent = 'Hide';
         } else {
-            passwordInput.type = 'password';
-            togglePasswordButton.textContent = 'Show';
+            input.type = 'password';
+            button.textContent = 'Show';
         }
     }
 
-    function toggleSignUpPasswordVisibility() {
-        if (signUpPasswordInput.type === 'password') {
-            signUpPasswordInput.type = 'text';
-            toggleSignUpPasswordButton.textContent = 'Hide';
+    function toggleSignUpPasswordVisibility(button, input) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.textContent = 'Hide';
         } else {
-            signUpPasswordInput.type = 'password';
-            toggleSignUpPasswordButton.textContent = 'Show';
+            input.type = 'password';
+            button.textContent = 'Show';
         }
     }
 
     function toggleForms(mode) {
-        if (signInForm && signUpForm) {
-            if (mode === 'Sign In') {
-                signInForm.style.display = 'block';
-                signUpForm.style.display = 'none';
-            } else {
-                signInForm.style.display = 'none';
-                signUpForm.style.display = 'block';
-            }
-        }
-    }
-
-    function openModal(mode) {
+        const modalTitle = document.getElementById('modalTitle');
         if (mode === 'Sign In') {
             signInForm.style.display = 'block';
             signUpForm.style.display = 'none';
+            modalTitle.textContent = 'Sign In';
         } else {
             signInForm.style.display = 'none';
             signUpForm.style.display = 'block';
+            modalTitle.textContent = 'Sign Up';
+        }
+    }
+    
+
+    function openModal(mode) {
+        const modalTitle = document.getElementById('modalTitle');
+        if (mode === 'Sign In') {
+            signInForm.style.display = 'block';
+            signUpForm.style.display = 'none';
+            modalTitle.textContent = 'Sign In';
+        } else {
+            signInForm.style.display = 'none';
+            signUpForm.style.display = 'block';
+            modalTitle.textContent = 'Sign Up';
         }
         authModal.style.display = 'block';
     }
     
+
     function closeModal() {
         authModal.style.display = 'none';
     }
-    
 
     attachEventListeners();
 
@@ -1286,8 +1313,8 @@ document.addEventListener("DOMContentLoaded", function() {
             console.log('Confirm button clicked');
             if (coinToRemoveIndex !== null) {
                 removeCoinFromPortfolio(coinToRemoveIndex);
-                coinToRemoveIndex = null; // Reset the index after removing the coin
-                confirmationModal.style.display = 'none'; // Ensure modal is hidden
+                coinToRemoveIndex = null;
+                confirmationModal.style.display = 'none';
             }
         });
     }
@@ -1297,16 +1324,16 @@ document.addEventListener("DOMContentLoaded", function() {
             event.stopPropagation();
             console.log('Cancel button clicked');
             confirmationModal.style.display = 'none';
-            coinToRemoveIndex = null; // Reset the index when cancelling
+            coinToRemoveIndex = null;
         });
     }
-    
+
     if (closeConfirmationModal) {
         closeConfirmationModal.addEventListener('click', function(event) {
             event.stopPropagation();
             console.log('Close button clicked');
             confirmationModal.style.display = 'none';
-            coinToRemoveIndex = null; // Reset the index when closing the modal
+            coinToRemoveIndex = null;
         });
     }
 
@@ -1315,7 +1342,7 @@ document.addEventListener("DOMContentLoaded", function() {
             event.stopPropagation();
             console.log('Window click detected outside modal');
             confirmationModal.style.display = 'none';
-            coinToRemoveIndex = null; // Reset the index when clicking outside the modal
+            coinToRemoveIndex = null;
         }
     });
 
@@ -1324,17 +1351,18 @@ document.addEventListener("DOMContentLoaded", function() {
         const coin = portfolio[index];
         totalInvestment -= coin.invested;
         totalProfit -= coin.profit;
-    
+
         portfolio.splice(index, 1);
         localStorage.setItem('portfolio', JSON.stringify(portfolio));
-    
+
         if (auth.currentUser) {
             saveUserData(auth.currentUser.uid);
         }
-    
+
         updatePortfolioTable();
         updateTotals();
-        confirmationModal.style.display = 'none'; // Ensure modal is hidden after removing the coin
+        confirmationModal.style.display = 'none';
+        savePortfolioToFirebase(); // Save updates to Firebase
     }
 
     async function saveUserData(uid) {
@@ -1403,7 +1431,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    setInterval(updateCurrentPrices, 300000); // 300000ms = 5 minute
+    setInterval(updateCurrentPrices, 60000); // 60000ms = 1 minute
     updateCurrentPrices();
 
     const storedPortfolio = localStorage.getItem('portfolio');
@@ -1456,7 +1484,6 @@ async function createUserDocumentIfNotExists(uid, email) {
     }
 }
 
-
 auth.onAuthStateChanged(user => {
     if (user) {
         if (user.emailVerified) {
@@ -1484,6 +1511,28 @@ auth.onAuthStateChanged(user => {
         clearLocalStorage();
     }
 });
+
+const refreshButton = document.getElementById('refreshButton');
+if (refreshButton) {
+    refreshButton.addEventListener('click', function() {
+        auth.currentUser.reload().then(() => {
+            if (auth.currentUser.emailVerified) {
+                console.log('Email verified after refresh');
+                authContainer.style.display = 'none';
+                emailVerificationContainer.style.display = 'none';
+                userContainer.style.display = 'block';
+                userEmail.textContent = auth.currentUser.email;
+                loadUserData(auth.currentUser.uid).then(() => {
+                    updateAuthUI(true);
+                });
+            } else {
+                console.log('Email not verified after refresh');
+            }
+        }).catch(error => {
+            console.error('Error reloading user:', error);
+        });
+    });
+}
 
 
 document.addEventListener('visibilitychange', function() {
