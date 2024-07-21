@@ -1067,3 +1067,70 @@ textarea {
         font-size: 16px; /* Ensure minimum font size on tablet and mobile */
     }
 }
+
+
+
+/* Email Verification Modal Styles */
+#emailVerificationModal .modal-content {
+    padding: 24px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 500px;
+    margin: 10% auto;
+    background-color: #fff;
+}
+
+#emailVerificationModal .close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 28px;
+    color: #aaa;
+    cursor: pointer;
+}
+
+#emailVerificationModal .close-button:hover,
+#emailVerificationModal .close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#emailVerificationModal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#emailVerificationModal .modal-header h2 {
+    margin: 0;
+}
+
+#emailVerificationModal .modal-body {
+    padding: 0px 0;
+}
+
+#emailVerificationModal p {
+    padding: 24px;
+    margin: 0px;
+}
+
+#resendVerificationButton {
+    padding: 8px 24px;
+    font-size: 16px;
+    color: rgb(0, 82, 255);
+    background-color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#resendVerificationButton:hover {
+    color: rgb(0, 70, 220);
+}
+
+.info-message {
+    color: rgb(52, 179, 73);
+    margin-top: 10px;
+    padding-left: 24px;
+}
