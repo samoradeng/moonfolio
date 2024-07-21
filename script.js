@@ -88,6 +88,10 @@ document.addEventListener("DOMContentLoaded", function() {
     let coinData = [];
     let userSubscription = 'free';
 
+    function closeModal() {
+        authModal.style.display = 'none';
+    }
+
     function showEmailVerificationModal() {
         emailVerificationModal.style.display = 'block';
     }
@@ -350,13 +354,14 @@ document.addEventListener("DOMContentLoaded", function() {
                 updateAuthUI(false);
                 authContainer.style.display = 'block';
                 userContainer.style.display = 'none';
-                emailVerificationContainer.style.display = 'none'; // Hide the verification message upon sign-out
+                emailVerificationContainer.style.display = 'none';
                 clearLocalStorage();
             }).catch(error => {
                 console.error('Error signing out:', error.message);
             });
         });
     }
+    
 
     auth.onAuthStateChanged(user => {
         if (user) {
@@ -366,7 +371,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     userEmail.textContent = user.email;
                     authContainer.style.display = 'none';
                     userContainer.style.display = 'block';
-                    emailVerificationContainer.style.display = 'none';
+                    emailVerificationModal.style.display = 'none';
                     createUserDocumentIfNotExists(user.uid, user.email).then(() => {
                         loadUserData(user.uid).then(() => {
                             updateAuthUI(true);
@@ -375,7 +380,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     closeModal();
                 } else {
                     console.log('User is signed in but not verified');
-                    showEmailVerificationScreen(); // Ensure this is correctly called
+                    showEmailVerificationScreen();
+                    updateAuthUI(false); // Ensure UI is updated to reflect the unverified state
                 }
             }).catch(error => {
                 console.error('Error reloading user:', error);
@@ -385,10 +391,11 @@ document.addEventListener("DOMContentLoaded", function() {
             updateAuthUI(false);
             authContainer.style.display = 'block';
             userContainer.style.display = 'none';
-            emailVerificationContainer.style.display = 'none';
+            emailVerificationModal.style.display = 'none';
             clearLocalStorage();
         }
     });
+    
 
     function setDataLabels() {
         const headers = Array.from(document.querySelectorAll("th")).map(th => th.textContent);
@@ -429,32 +436,33 @@ async function updatePortfolioPrices() {
     savePortfolioToFirebase(); // Save the updated portfolio to Firebase
 }
 
-    async function loadUserData(uid) {
-        try {
-            const doc = await db.collection('users').doc(uid).get();
-            if (doc.exists) {
-                console.log('Document data:', doc.data());
-                portfolio = doc.data().portfolio || [];
-                userSubscription = doc.data().subscription || 'free';
-                await updatePortfolioPrices(); // Fetch the latest prices from CoinGecko
-                localStorage.setItem('portfolio', JSON.stringify(portfolio));
-                updatePortfolioTable();
-                updateTotals();
-                if (userSubscription === 'premium') {
-                    console.log('User is a premium member.');
-                    enablePremiumFeatures();
-                    checkoutButton.style.display = 'none'; // Hide button for premium users
-                } else {
-                    console.log('User is a free member.');
-                    checkoutButton.style.display = 'inline-block'; // Show button for free users
-                }
+async function loadUserData(uid) {
+    try {
+        const doc = await db.collection('users').doc(uid).get();
+        if (doc.exists) {
+            console.log('Document data:', doc.data());
+            portfolio = doc.data().portfolio || [];
+            userSubscription = doc.data().subscription || 'free';
+            await updatePortfolioPrices(); // Fetch the latest prices from CoinGecko
+            localStorage.setItem('portfolio', JSON.stringify(portfolio));
+            updatePortfolioTable();
+            updateTotals();
+            if (userSubscription === 'premium') {
+                console.log('User is a premium member.');
+                enablePremiumFeatures();
+                checkoutButton.style.display = 'none'; // Hide button for premium users
             } else {
-                console.log('No such document!');
+                console.log('User is a free member.');
+                checkoutButton.style.display = 'inline-block'; // Show button for free users
             }
-        } catch (error) {
-            console.error('Error getting document:', error);
+        } else {
+            console.log('No such document!');
         }
+    } catch (error) {
+        console.error('Error getting document:', error);
     }
+}
+
 
     function createUserDocument(uid, email) {
         return db.collection('users').doc(uid).set({
@@ -496,17 +504,18 @@ async function savePortfolioToFirebase() {
     }
 }
 
-    async function saveUserData(uid) {
-        try {
-            await db.collection('users').doc(uid).set({
-                portfolio: portfolio,
-                subscription: userSubscription
-            }, { merge: true }); // Use merge to avoid overwriting the entire document
-            console.log('User data saved successfully!');
-        } catch (error) {
-            console.error('Error saving user data:', error);
-        }
+async function saveUserData(uid) {
+    try {
+        await db.collection('users').doc(uid).set({
+            portfolio: portfolio,
+            subscription: userSubscription
+        }, { merge: true }); // Use merge to avoid overwriting the entire document
+        console.log('User data saved successfully!');
+    } catch (error) {
+        console.error('Error saving user data:', error);
     }
+}
+
     
 
     const multipliers = [2, 5, 10, 20, 50, 100, 250, 500, 1000, 1500];
@@ -1073,21 +1082,27 @@ async function savePortfolioToFirebase() {
             signOutButton.addEventListener('click', signOut);
         }
 
-        if (resendVerificationButton) {
-            resendVerificationButton.addEventListener('click', function() {
-                const user = auth.currentUser;
-                if (user) {
-                    user.sendEmailVerification().then(() => {
-                        resendVerificationMessage.textContent = 'Verification email sent.';
-                        resendVerificationMessage.style.display = 'block';
-                    }).catch(error => {
-                        console.error('Error sending verification email:', error.message);
-                        resendVerificationMessage.textContent = 'Error sending verification email. Please try again later.';
-                        resendVerificationMessage.style.display = 'block';
-                    });
-                }
-            });
-        }
+        // if (resendVerificationButton) {
+        //     resendVerificationButton.addEventListener('click', function() {
+        //         const user = auth.currentUser;
+        //         if (user) {
+                    
+        //             user.sendEmailVerification().then(() => {
+        //                 console.log('Verification email sent.');
+        //                 resendVerificationMessage.textContent = 'Verification email sent.';
+        //                 resendVerificationMessage.style.display = 'block';
+        //             }).catch(error => {
+        //                 console.error('Error sending verification email:', error.message);
+        //                 resendVerificationMessage.textContent = 'Error sending verification email. Please try again later.';
+        //                 resendVerificationMessage.style.display = 'block';
+        //             });
+        //         } else {
+        //             console.log('No user is signed in to resend verification email.');
+        //             resendVerificationMessage.textContent = 'No user is signed in. Please sign in to resend verification email.';
+        //             resendVerificationMessage.style.display = 'block';
+        //         }
+        //     });
+        // }
 
         if (checkoutButton) {
             checkoutButton.addEventListener('click', showUpgradeModal);
@@ -1134,9 +1149,9 @@ async function savePortfolioToFirebase() {
         const password = passwordInput.value;
         errorMessage.textContent = '';
         loadingIndicator.style.display = 'block';
-
+    
         console.log('Attempting to sign in with:', email, password);
-
+    
         auth.signInWithEmailAndPassword(email, password)
             .then(userCredential => {
                 if (userCredential.user.emailVerified) {
@@ -1165,6 +1180,8 @@ async function savePortfolioToFirebase() {
                 loadingIndicator.style.display = 'none';
             });
     }
+    
+    
     let signUpButtonClicked = false;
 
     function signUp() {
@@ -1305,9 +1322,7 @@ async function savePortfolioToFirebase() {
     }
     
 
-    function closeModal() {
-        authModal.style.display = 'none';
-    }
+    
 
     attachEventListeners();
 
@@ -1467,6 +1482,8 @@ async function savePortfolioToFirebase() {
             }
         }
     }
+    
+    
 });
 
 async function createUserDocumentIfNotExists(uid, email) {
@@ -1490,31 +1507,37 @@ async function createUserDocumentIfNotExists(uid, email) {
 
 auth.onAuthStateChanged(user => {
     if (user) {
-        if (user.emailVerified) {
-            console.log('User is signed in and verified');
-            userEmail.textContent = user.email;
-            authContainer.style.display = 'none';
-            userContainer.style.display = 'block';
-            emailVerificationModal.style.display = 'none';
-            createUserDocumentIfNotExists(user.uid, user.email).then(() => {
-                loadUserData(user.uid).then(() => {
-                    updateAuthUI(true);
+        user.reload().then(() => {
+            if (user.emailVerified) {
+                console.log('User is signed in and verified');
+                userEmail.textContent = user.email;
+                authContainer.style.display = 'none';
+                userContainer.style.display = 'block';
+                emailVerificationContainer.style.display = 'none';
+                createUserDocumentIfNotExists(user.uid, user.email).then(() => {
+                    loadUserData(user.uid).then(() => {
+                        updateAuthUI(true);
+                    });
                 });
-            });
-            closeModal();
-        } else {
-            console.log('User is signed in but not verified');
-            showEmailVerificationModal();
-        }
+                closeModal();
+            } else {
+                console.log('User is signed in but not verified');
+                showEmailVerificationScreen(); // Ensure this is correctly called
+            }
+        }).catch(error => {
+            console.error('Error reloading user:', error);
+        });
     } else {
         console.log('No user is signed in');
         updateAuthUI(false);
         authContainer.style.display = 'block';
         userContainer.style.display = 'none';
-        emailVerificationModal.style.display = 'none';
+        emailVerificationContainer.style.display = 'none';
         clearLocalStorage();
     }
 });
+
+
 
 if (closeEmailVerificationModal) {
     closeEmailVerificationModal.addEventListener('click', function() {
