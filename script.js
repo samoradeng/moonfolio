@@ -1082,27 +1082,27 @@ async function saveUserData(uid) {
             signOutButton.addEventListener('click', signOut);
         }
 
-        // if (resendVerificationButton) {
-        //     resendVerificationButton.addEventListener('click', function() {
-        //         const user = auth.currentUser;
-        //         if (user) {
+        if (resendVerificationButton) {
+            resendVerificationButton.addEventListener('click', function() {
+                const user = auth.currentUser;
+                if (user) {
                     
-        //             user.sendEmailVerification().then(() => {
-        //                 console.log('Verification email sent.');
-        //                 resendVerificationMessage.textContent = 'Verification email sent.';
-        //                 resendVerificationMessage.style.display = 'block';
-        //             }).catch(error => {
-        //                 console.error('Error sending verification email:', error.message);
-        //                 resendVerificationMessage.textContent = 'Error sending verification email. Please try again later.';
-        //                 resendVerificationMessage.style.display = 'block';
-        //             });
-        //         } else {
-        //             console.log('No user is signed in to resend verification email.');
-        //             resendVerificationMessage.textContent = 'No user is signed in. Please sign in to resend verification email.';
-        //             resendVerificationMessage.style.display = 'block';
-        //         }
-        //     });
-        // }
+                    user.sendEmailVerification().then(() => {
+                        console.log('Verification email sent.');
+                        resendVerificationMessage.textContent = 'Verification email sent.';
+                        resendVerificationMessage.style.display = 'block';
+                    }).catch(error => {
+                        console.error('Error sending verification email:', error.message);
+                        resendVerificationMessage.textContent = 'Error sending verification email. Please try again later.';
+                        resendVerificationMessage.style.display = 'block';
+                    });
+                } else {
+                    console.log('No user is signed in to resend verification email.');
+                    resendVerificationMessage.textContent = 'No user is signed in. Please sign in to resend verification email.';
+                    resendVerificationMessage.style.display = 'block';
+                }
+            });
+        }
 
         if (checkoutButton) {
             checkoutButton.addEventListener('click', showUpgradeModal);
