@@ -99,14 +99,24 @@
         </div>
     </div>
 
-    <button id="resendVerificationButton" style="display:none;">Resend Verification Email</button>
-    <div id="resendVerificationMessage" class="info-message" style="display:none;"></div>
-
     <div id="userContainer" style="display:none;">
         <p>Welcome, <span id="userEmail"></span></p>
         <button id="checkout-button" style="display: none;">Upgrade to Premium</button>
     </div>
 
+    <div id="emailVerificationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Email Verification</h2>
+                <span id="closeEmailVerificationModal" class="close-button">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>We have sent a verification email to you. Please verify your email then refresh before continuing.</p>
+                <button id="resendVerificationButton">Resend Verification Email</button>
+                <div id="resendVerificationMessage" class="info-message" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="dashboardTotals">
         <div class="total-investment">
@@ -207,12 +217,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div id="emailVerificationContainer" style="display:none;">
-        <p>We have sent a verification email to your email address. Please verify your email then refresh before continuing.</p>
-        <button id="resendVerificationButton">Resend Verification Email</button>
-        <div id="resendVerificationMessage" class="info-message" style="display:none;"></div>
     </div>
 
     <!-- Forgot Password Modal -->
