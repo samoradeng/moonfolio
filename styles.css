@@ -797,6 +797,9 @@ th {
 
 #upgradeModal p {
     text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    margin-top: 0px;
 }
 
 #upgradeModal ul {
@@ -810,7 +813,20 @@ th {
     margin: 10px 0;
 }
 
-#upgradeButton,
+#upgradeButton{
+    display: block;
+    width: 100%;
+    max-width: 200px;
+    margin: 32px auto 0;
+    padding: 10px 20px;
+    background-color: rgb(0, 82, 255);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
 #checkout-button {
     display: block;
     width: 100%;
@@ -1134,4 +1150,3 @@ textarea {
     margin-top: 10px;
     padding-left: 24px;
 }
- 
