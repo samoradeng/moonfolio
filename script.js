@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const closeConfirmationModal = document.getElementById("closeConfirmationModal");
     const cancelButton = document.getElementById("cancelButton");
     const confirmButton = document.getElementById("confirmButton");
-    const emailVerificationContainer = document.getElementById("emailVerificationContainer");
+   // const emailVerificationContainer = document.getElementById("emailVerificationContainer");
     const emailVerificationModal = document.getElementById("emailVerificationModal");
     const resendVerificationButton = document.getElementById("resendVerificationButton");
     const resendVerificationMessage = document.getElementById("resendVerificationMessage");
@@ -93,18 +93,16 @@ document.addEventListener("DOMContentLoaded", function() {
         authModal.style.display = 'none';
     }
 
-    function showEmailVerificationModal() {
-        emailVerificationModal.style.display = 'block';
-    }
+    
 
-    function showEmailVerificationScreen() {
-        const authContainer = document.getElementById('authContainer');
-        const emailVerificationContainer = document.getElementById('emailVerificationContainer');
-        if (authContainer && emailVerificationContainer) {
-            authContainer.style.display = 'none';
-            emailVerificationContainer.style.display = 'block';
-        }
-    }
+    // function showEmailVerificationScreen() {
+    //     const authContainer = document.getElementById('authContainer');
+    //     const emailVerificationContainer = document.getElementById('emailVerificationContainer');
+    //     if (authContainer && emailVerificationContainer) {
+    //         authContainer.style.display = 'none';
+    //         emailVerificationContainer.style.display = 'block';
+    //     }
+    // }
 
     const modals = document.querySelectorAll('.modal');
     const closeModalButtons = document.querySelectorAll('.close-button');
@@ -141,6 +139,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }, { passive: false });
     });
+
 
     const feedbackButton = document.getElementById('feedbackButton');
     const feedbackModal = document.getElementById('feedbackModal');
@@ -310,6 +309,11 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // Ensure showEmailVerificationModal is defined
+function showEmailVerificationModal() {
+    emailVerificationModal.style.display = 'block';
+}
+
     if (signInButton) {
         signInButton.addEventListener('click', function() {
             const email = emailInput.value;
@@ -326,7 +330,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         userEmail.textContent = userCredential.user.email;
                         authContainer.style.display = 'none';
                         userContainer.style.display = 'block';
-                        emailVerificationContainer.style.display = 'none'; // Hide the verification message upon successful sign-in
+                        emailVerificationModal.style.display = 'none'; // Hide the verification message upon successful sign-in
                         createUserDocumentIfNotExists(userCredential.user.uid, email).then(() => {
                             loadUserData(userCredential.user.uid);
                         });
@@ -335,7 +339,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     } else {
                         auth.signOut();
                         errorMessage.textContent = 'Please verify your email address before signing in.';
-                        showEmailVerificationScreen();
+                        showEmailVerificationModal();
                     }
                 })
                 .catch(error => {
@@ -355,7 +359,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 updateAuthUI(false);
                 authContainer.style.display = 'block';
                 userContainer.style.display = 'none';
-                emailVerificationContainer.style.display = 'none';
+                emailVerificationModal.style.display = 'none';
                 clearLocalStorage();
             }).catch(error => {
                 console.error('Error signing out:', error.message);
@@ -381,7 +385,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     closeModal();
                 } else {
                     console.log('User is signed in but not verified');
-                    showEmailVerificationScreen();
+                    showEmailVerificationModal();
                     updateAuthUI(false); // Ensure UI is updated to reflect the unverified state
                 }
             }).catch(error => {
@@ -1160,7 +1164,7 @@ async function saveUserData(uid) {
                     userEmail.textContent = userCredential.user.email;
                     authContainer.style.display = 'none';
                     userContainer.style.display = 'block';
-                    emailVerificationContainer.style.display = 'none';
+                    emailVerificationModal.style.display = 'none';
                     createUserDocumentIfNotExists(userCredential.user.uid, email).then(() => {
                         loadUserData(userCredential.user.uid).then(() => {
                             updateAuthUI(true);
@@ -1170,7 +1174,7 @@ async function saveUserData(uid) {
                 } else {
                     auth.signOut();
                     errorMessage.textContent = 'Please verify your email address before signing in.';
-                    showEmailVerificationScreen();
+                    showEmailVerificationModal();
                 }
             })
             .catch(error => {
@@ -1186,35 +1190,37 @@ async function saveUserData(uid) {
     
 
     function signUp() {
-        if (signUpButtonClicked) return;
-
-        signUpButtonClicked = true;
-        console.log('Sign Up button clicked');
         const email = signUpEmailInput.value;
         const password = signUpPasswordInput.value;
         signUpErrorMessage.textContent = '';
         signUpLoadingIndicator.style.display = 'block';
 
-        // Firebase user creation
         auth.createUserWithEmailAndPassword(email, password)
             .then(userCredential => {
                 console.log('User signed up:', userCredential.user);
-                return userCredential.user.sendEmailVerification();
-            })
-            .then(() => {
-                console.log('Verification email sent.');
-                showEmailVerificationModal();
-                closeModal();
+                userCredential.user.sendEmailVerification()
+                    .then(() => {
+                        console.log('Verification email sent.');
+                        showEmailVerificationModal();
+                        closeModal();
+                    })
+                    .catch(error => {
+                        console.error('Error sending verification email:', error.message);
+                        signUpErrorMessage.textContent = error.message;
+                    });
             })
             .catch(error => {
-                console.error('Error during sign up:', error.message);
+                console.error('Error signing up:', error.message);
                 signUpErrorMessage.textContent = error.message;
             })
             .finally(() => {
                 signUpLoadingIndicator.style.display = 'none';
-                signUpButtonClicked = false;
             });
     }
+    
+
+    
+
 
     function signOut() {
         auth.signOut().then(() => {
@@ -1222,7 +1228,7 @@ async function saveUserData(uid) {
             updateAuthUI(false);
             authContainer.style.display = 'block';
             userContainer.style.display = 'none';
-            emailVerificationContainer.style.display = 'none';
+            emailVerificationModal.style.display = 'none';
             clearLocalStorage();
         }).catch(error => {
             console.error('Error signing out:', error.message);
@@ -1514,7 +1520,7 @@ auth.onAuthStateChanged(user => {
                 userEmail.textContent = user.email;
                 authContainer.style.display = 'none';
                 userContainer.style.display = 'block';
-                emailVerificationContainer.style.display = 'none';
+                emailVerificationModal.style.display = 'none';
                 createUserDocumentIfNotExists(user.uid, user.email).then(() => {
                     loadUserData(user.uid).then(() => {
                         updateAuthUI(true);
@@ -1523,17 +1529,17 @@ auth.onAuthStateChanged(user => {
                 closeModal();
             } else {
                 console.log('User is signed in but not verified');
-                showEmailVerificationScreen(); // Ensure this is correctly called
+                emailVerificationModal.style.display = 'block'; // Ensure this is correctly called
             }
         }).catch(error => {
             console.error('Error reloading user:', error);
         });
     } else {
         console.log('No user is signed in');
-        updateAuthUI(false);
+        //updateAuthUI(false);
         authContainer.style.display = 'block';
         userContainer.style.display = 'none';
-        emailVerificationContainer.style.display = 'none';
+        emailVerificationModal.style.display = 'none';
         clearLocalStorage();
     }
 });
@@ -1559,7 +1565,7 @@ if (refreshButton) {
             if (auth.currentUser.emailVerified) {
                 console.log('Email verified after refresh');
                 authContainer.style.display = 'none';
-                emailVerificationContainer.style.display = 'none';
+                emailVerificationModal.style.display = 'none';
                 emailVerificationModal.style.display = 'none';
                 userContainer.style.display = 'block';
                 userEmail.textContent = auth.currentUser.email;
