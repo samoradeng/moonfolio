@@ -52,6 +52,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const signInButton = document.getElementById('signInButton');
     const signUpButton = document.getElementById('signUpButton');
     const signOutButton = document.getElementById('signOutButton');
+    const userIcon = document.getElementById('userIcon');
+    const userDropdown = document.getElementById('userDropdown');
+    const userMenuContainer = document.getElementById('userMenuContainer');
     const signInModalButton = document.getElementById('signInModalButton');
     const signUpModalButton = document.getElementById('signUpModalButton');
     const closeAuthModalButton = document.querySelector('.close-button');
@@ -329,7 +332,7 @@ function showEmailVerificationModal() {
                         console.log('User signed in:', userCredential.user);
                         userEmail.textContent = userCredential.user.email;
                         authContainer.style.display = 'none';
-                        userContainer.style.display = 'block';
+                        //userContainer.style.display = 'block';
                         emailVerificationModal.style.display = 'none'; // Hide the verification message upon successful sign-in
                         createUserDocumentIfNotExists(userCredential.user.uid, email).then(() => {
                             loadUserData(userCredential.user.uid);
@@ -366,6 +369,18 @@ function showEmailVerificationModal() {
             });
         });
     }
+
+    // Toggle dropdown menu
+    userIcon.addEventListener('click', function() {
+        userDropdown.style.display = userDropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function(event) {
+        if (!userMenuContainer.contains(event.target)) {
+            userDropdown.style.display = 'none';
+        }
+    });
     
 
     auth.onAuthStateChanged(user => {
@@ -375,7 +390,7 @@ function showEmailVerificationModal() {
                     console.log('User is signed in and verified');
                     userEmail.textContent = user.email;
                     authContainer.style.display = 'none';
-                    userContainer.style.display = 'block';
+                    //userContainer.style.display = 'block';
                     emailVerificationModal.style.display = 'none';
                     createUserDocumentIfNotExists(user.uid, user.email).then(() => {
                         loadUserData(user.uid).then(() => {
@@ -400,6 +415,9 @@ function showEmailVerificationModal() {
             clearLocalStorage();
         }
     });
+
+
+    
     
 
     function setDataLabels() {
@@ -1163,7 +1181,7 @@ async function saveUserData(uid) {
                     console.log('User signed in:', userCredential.user);
                     userEmail.textContent = userCredential.user.email;
                     authContainer.style.display = 'none';
-                    userContainer.style.display = 'block';
+                    //userContainer.style.display = 'block';
                     emailVerificationModal.style.display = 'none';
                     createUserDocumentIfNotExists(userCredential.user.uid, email).then(() => {
                         loadUserData(userCredential.user.uid).then(() => {
@@ -1471,18 +1489,16 @@ async function saveUserData(uid) {
         if (isSignedIn) {
             signInModalButton.style.display = 'none';
             signUpModalButton.style.display = 'none';
-            signOutButton.style.display = 'inline-block';
-            userContainer.style.display = 'block';
-            checkoutButton.style.display = userSubscription === 'free' ? 'inline-block' : 'none';
+            userMenuContainer.style.display = 'inline-block';
+            checkoutButton.style.display = userSubscription === 'free' ? 'block' : 'none';
+            signOutButton.style.display = 'block';
             if (feedbackEmailInput) {
                 feedbackEmailInput.value = auth.currentUser.email;
             }
         } else {
             signInModalButton.style.display = 'inline-block';
             signUpModalButton.style.display = 'inline-block';
-            signOutButton.style.display = 'none';
-            userContainer.style.display = 'none';
-            checkoutButton.style.display = 'none';
+            userMenuContainer.style.display = 'none';
             clearLocalStorage();
             if (feedbackEmailInput) {
                 feedbackEmailInput.value = '';
@@ -1519,7 +1535,7 @@ auth.onAuthStateChanged(user => {
                 console.log('User is signed in and verified');
                 userEmail.textContent = user.email;
                 authContainer.style.display = 'none';
-                userContainer.style.display = 'block';
+                //userContainer.style.display = 'block';
                 emailVerificationModal.style.display = 'none';
                 createUserDocumentIfNotExists(user.uid, user.email).then(() => {
                     loadUserData(user.uid).then(() => {
@@ -1567,7 +1583,7 @@ if (refreshButton) {
                 authContainer.style.display = 'none';
                 emailVerificationModal.style.display = 'none';
                 emailVerificationModal.style.display = 'none';
-                userContainer.style.display = 'block';
+                //userContainer.style.display = 'block';
                 userEmail.textContent = auth.currentUser.email;
                 loadUserData(auth.currentUser.uid).then(() => {
                     updateAuthUI(true);
