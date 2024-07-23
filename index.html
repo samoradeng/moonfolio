@@ -33,10 +33,19 @@
             <button id="feedbackButton" class="auth-button">Feedback</button>
             <button id="signInModalButton" class="auth-button">Sign in</button>
             <button id="signUpModalButton" class="auth-button sign-up">Sign up</button>
-            <button id="signOutButton" class="auth-button" style="display:none;">Sign Out</button>
+            <div id="userMenuContainer" class="user-menu-container" style="display:none;">
+                <button id="userIcon" class="user-icon">
+                    <img src="/images/user-circle.svg" alt="User Icon">
+                </button>                
+                <div id="userDropdown" class="user-dropdown">
+                    <button id="checkout-button" class="auth-button" style="display:none;">Get Premium</button>
+                    <button id="signOutButton" class="auth-button">Sign Out</button>
+                </div>
+            </div>
         </nav>
     </div>
 </header>
+
 <!-- Feedback Modal -->
 <div id="feedbackModal" class="modal">
     <div class="modal-content">
@@ -47,7 +56,7 @@
         <div class="modal-body">
             <form id="feedbackForm">
                 <div class="form-group">
-                    <label for="feedbackEmail">Email</label>
+                    <label for="feedbackEmail">Your email</label>
                     <input type="email" id="feedbackEmail" name="user_email" placeholder="Your email (optional)">
                 </div>
                 <div class="form-group">
@@ -161,7 +170,7 @@
     <div id="addCoinModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="AddTransactionHeaderText">Add Transaction</h2>
+                <h2 id="AddTransactionHeaderText">Add Coin</h2>
                 <span id="closeAddCoinModal" class="close-button">&times;</span>
             </div>
             <div class="modal-body">
@@ -198,7 +207,7 @@
                         <input type="number" id="moonCaseMCManual" placeholder="Market Cap" disabled>
                         <input type="number" id="moonCaseMultiplierManual" placeholder="Multiplier (x)" disabled>
                     </div>
-                    <button id="addTransactionButton" type="submit">Add Transaction</button>
+                    <button id="addTransactionButton" type="submit">Add Coin</button>
                 </form>
             </div>
         </div>
@@ -250,10 +259,10 @@
             </div>
             <div class="modal-body">
                 
-                <p>What's included?</p>
+                <p>Outperform with insight</p>
                 <ul>
                   <!--  <li>Add multiple portfolios</li> -->
-                    <li>Add more than 3 coins. Unlimited access to all future premium features</li>
+                    <li>Add more than 3 coins. Also get unlimited access to all future premium features.</li>
                    
                     <br>
                     <li>$9.99/month · Cancel anytime</li>
