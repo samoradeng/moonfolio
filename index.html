@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Moon</title>
+    <title>Crypto Moon 🌕</title>
     <link href="https://cdn.jsdelivr.net/npm/jquery-ui-dist/jquery-ui.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-ui-dist/jquery-ui.min.js"></script>
@@ -31,14 +31,14 @@
             <img src="/images/moonfolio-logo-mobile.svg" alt="Moonfolio Mobile Logo" class="mobile-logo">
         </div>
         <nav class="header-nav">
-            <button id="feedbackButton" class="auth-button">Feedback</button>
             <button id="signInModalButton" class="auth-button">Sign in</button>
             <button id="signUpModalButton" class="auth-button sign-up">Sign up</button>
-            <div id="userMenuContainer" class="user-menu-container" style="display:none;">
+            <div id="userMenuContainer" class="user-menu-container">
                 <button id="userIcon" class="user-icon">
                     <img src="/images/moonfolio-user-icon.svg" alt="User Icon">
                 </button>                
                 <div id="userDropdown" class="user-dropdown">
+                    <button id="feedbackButton" class="auth-button">Feedback</button> <!-- Moved inside -->
                     <button id="checkout-button" class="auth-button" style="display:none;">Get Premium</button>
                     <button id="signOutButton" class="auth-button">Sign Out</button>
                 </div>
@@ -46,6 +46,7 @@
         </nav>
     </div>
 </header>
+
 
 
 
