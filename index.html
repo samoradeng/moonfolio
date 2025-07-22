@@ -23,6 +23,10 @@
             emailjs.init("W7vuD5ONPc1mcb_Xa"); // Replace with your actual EmailJS public key
         })();
     </script>
+    
+    <!-- Web3 and Wallet Integration Scripts -->
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 <header>
     <div class="header-container">
@@ -31,6 +35,9 @@
             <img src="/images/moonfolio-logo-mobile.svg" alt="Moonfolio Mobile Logo" class="mobile-logo">
         </div>
         <nav class="header-nav">
+            <button id="connectWalletButton" class="auth-button wallet-button">🔗 Connect Wallet</button>
+            <button id="exchangeIntegrationButton" class="auth-button exchange-button">📊 Connect Exchange</button>
+            <button id="alertsButton" class="auth-button alerts-button">🔔 Alerts</button>
             <button id="signInModalButton" class="auth-button">Sign in</button>
             <button id="signUpModalButton" class="auth-button sign-up">Sign up</button>
             <div id="userMenuContainer" class="user-menu-container">
@@ -75,6 +82,175 @@
 
 <!-- Toast Container -->
 <div id="toastContainer" class="toast-container"></div>
+
+<!-- Wallet Connection Modal -->
+<div id="walletModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span id="closeWalletModal" class="close-button">&times;</span>
+            <h2>Connect Your Wallet</h2>
+        </div>
+        <div class="modal-body">
+            <div class="wallet-options">
+                <button id="connectMetamask" class="wallet-option-btn">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" class="wallet-icon">
+                    <span>MetaMask</span>
+                </button>
+                <button id="connectPhantom" class="wallet-option-btn">
+                    <img src="https://phantom.app/img/phantom-icon-purple.png" alt="Phantom" class="wallet-icon">
+                    <span>Phantom</span>
+                </button>
+                <button id="connectWalletConnect" class="wallet-option-btn">
+                    <img src="https://walletconnect.com/walletconnect-logo.svg" alt="WalletConnect" class="wallet-icon">
+                    <span>WalletConnect</span>
+                </button>
+            </div>
+            <div id="walletStatus" class="wallet-status"></div>
+            <div id="connectedWallets" class="connected-wallets"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Exchange Integration Modal -->
+<div id="exchangeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span id="closeExchangeModal" class="close-button">&times;</span>
+            <h2>Connect Exchange</h2>
+        </div>
+        <div class="modal-body">
+            <div class="exchange-options">
+                <button id="connectCoinbase" class="exchange-option-btn">
+                    <img src="https://logos-world.net/wp-content/uploads/2021/02/Coinbase-Symbol.png" alt="Coinbase" class="exchange-icon">
+                    <span>Coinbase</span>
+                </button>
+                <button id="connectBinance" class="exchange-option-btn">
+                    <img src="https://cryptologos.cc/logos/binance-coin-bnb-logo.png" alt="Binance" class="exchange-icon">
+                    <span>Binance</span>
+                </button>
+                <button id="connectKraken" class="exchange-option-btn">
+                    <img src="https://cryptologos.cc/logos/kraken-exchange-kraken-logo.png" alt="Kraken" class="exchange-icon">
+                    <span>Kraken</span>
+                </button>
+            </div>
+            <div id="exchangeApiForm" class="exchange-api-form" style="display:none;">
+                <h3 id="selectedExchangeName"></h3>
+                <div class="form-group">
+                    <label for="apiKey">API Key</label>
+                    <input type="password" id="apiKey" placeholder="Your API Key">
+                </div>
+                <div class="form-group">
+                    <label for="apiSecret">API Secret</label>
+                    <input type="password" id="apiSecret" placeholder="Your API Secret">
+                </div>
+                <div class="form-group">
+                    <label for="apiPassphrase">Passphrase (if required)</label>
+                    <input type="password" id="apiPassphrase" placeholder="Passphrase (optional)">
+                </div>
+                <div class="api-permissions-note">
+                    <p><strong>⚠️ Important:</strong> Only use READ-ONLY API keys. Never share keys with trading permissions.</p>
+                </div>
+                <button id="saveExchangeConnection" class="auth-button">Connect Exchange</button>
+            </div>
+            <div id="connectedExchanges" class="connected-exchanges"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts Management Modal -->
+<div id="alertsModal" class="modal">
+    <div class="modal-content alerts-modal">
+        <div class="modal-header">
+            <span id="closeAlertsModal" class="close-button">&times;</span>
+            <h2>Alert Management</h2>
+        </div>
+        <div class="modal-body">
+            <div class="alerts-tabs">
+                <button id="priceAlertsTab" class="alert-tab active">Price Alerts</button>
+                <button id="portfolioAlertsTab" class="alert-tab">Portfolio Alerts</button>
+                <button id="marketAlertsTab" class="alert-tab">Market Alerts</button>
+            </div>
+            
+            <!-- Price Alerts Tab -->
+            <div id="priceAlertsContent" class="alert-content active">
+                <div class="create-alert-form">
+                    <h3>Create Price Alert</h3>
+                    <div class="form-group">
+                        <label for="alertCoin">Select Coin</label>
+                        <input type="text" id="alertCoin" placeholder="Search for a coin...">
+                    </div>
+                    <div class="form-group">
+                        <label for="alertType">Alert Type</label>
+                        <select id="alertType">
+                            <option value="price_above">Price Above</option>
+                            <option value="price_below">Price Below</option>
+                            <option value="price_change">Price Change %</option>
+                            <option value="volume_spike">Volume Spike</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="alertValue">Alert Value</label>
+                        <input type="number" id="alertValue" placeholder="e.g., 50000 or 10%">
+                    </div>
+                    <div class="form-group">
+                        <label for="alertFrequency">Frequency</label>
+                        <select id="alertFrequency">
+                            <option value="once">Once</option>
+                            <option value="daily">Daily</option>
+                            <option value="always">Every time</option>
+                        </select>
+                    </div>
+                    <button id="createPriceAlert" class="auth-button">Create Alert</button>
+                </div>
+                <div id="priceAlertsList" class="alerts-list"></div>
+            </div>
+
+            <!-- Portfolio Alerts Tab -->
+            <div id="portfolioAlertsContent" class="alert-content">
+                <div class="create-alert-form">
+                    <h3>Portfolio Performance Alerts</h3>
+                    <div class="form-group">
+                        <label for="portfolioAlertType">Alert Type</label>
+                        <select id="portfolioAlertType">
+                            <option value="total_gain">Total Gain/Loss %</option>
+                            <option value="daily_change">Daily Change %</option>
+                            <option value="rebalance_needed">Rebalancing Needed</option>
+                            <option value="goal_reached">Investment Goal Reached</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="portfolioAlertValue">Threshold Value</label>
+                        <input type="number" id="portfolioAlertValue" placeholder="e.g., 20% or $10000">
+                    </div>
+                    <button id="createPortfolioAlert" class="auth-button">Create Alert</button>
+                </div>
+                <div id="portfolioAlertsList" class="alerts-list"></div>
+            </div>
+
+            <!-- Market Alerts Tab -->
+            <div id="marketAlertsContent" class="alert-content">
+                <div class="create-alert-form">
+                    <h3>Market Condition Alerts</h3>
+                    <div class="form-group">
+                        <label for="marketAlertType">Alert Type</label>
+                        <select id="marketAlertType">
+                            <option value="fear_greed">Fear & Greed Index</option>
+                            <option value="market_cap">Total Market Cap</option>
+                            <option value="btc_dominance">Bitcoin Dominance</option>
+                            <option value="funding_rates">Funding Rates</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="marketAlertValue">Threshold Value</label>
+                        <input type="number" id="marketAlertValue" placeholder="e.g., 25 (Fear & Greed)">
+                    </div>
+                    <button id="createMarketAlert" class="auth-button">Create Alert</button>
+                </div>
+                <div id="marketAlertsList" class="alerts-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <body>
     <!-- Sign In/Sign Up Modal -->

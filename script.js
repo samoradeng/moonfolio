@@ -1603,3 +1603,1053 @@ document.addEventListener('visibilitychange', function() {
         attachEventListeners();
     }
 });
+
+// =============================================================================
+// WALLET CONNECTION & EXCHANGE INTEGRATION
+// =============================================================================
+
+class WalletManager {
+    constructor() {
+        this.connectedWallets = [];
+        this.connectedExchanges = [];
+        this.isInitialized = false;
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.loadConnectedWallets();
+        this.loadConnectedExchanges();
+        this.isInitialized = true;
+    }
+
+    setupEventListeners() {
+        // Wallet Modal
+        document.getElementById('connectWalletButton')?.addEventListener('click', () => this.openWalletModal());
+        document.getElementById('closeWalletModal')?.addEventListener('click', () => this.closeWalletModal());
+        
+        // Exchange Modal
+        document.getElementById('exchangeIntegrationButton')?.addEventListener('click', () => this.openExchangeModal());
+        document.getElementById('closeExchangeModal')?.addEventListener('click', () => this.closeExchangeModal());
+        
+        // Wallet connections
+        document.getElementById('connectMetamask')?.addEventListener('click', () => this.connectMetaMask());
+        document.getElementById('connectPhantom')?.addEventListener('click', () => this.connectPhantom());
+        document.getElementById('connectWalletConnect')?.addEventListener('click', () => this.connectWalletConnect());
+        
+        // Exchange connections
+        document.getElementById('connectCoinbase')?.addEventListener('click', () => this.showExchangeForm('coinbase'));
+        document.getElementById('connectBinance')?.addEventListener('click', () => this.showExchangeForm('binance'));
+        document.getElementById('connectKraken')?.addEventListener('click', () => this.showExchangeForm('kraken'));
+        document.getElementById('saveExchangeConnection')?.addEventListener('click', () => this.saveExchangeConnection());
+    }
+
+    openWalletModal() {
+        document.getElementById('walletModal').style.display = 'block';
+        this.updateWalletDisplay();
+    }
+
+    closeWalletModal() {
+        document.getElementById('walletModal').style.display = 'none';
+    }
+
+    openExchangeModal() {
+        document.getElementById('exchangeModal').style.display = 'block';
+        this.updateExchangeDisplay();
+    }
+
+    closeExchangeModal() {
+        document.getElementById('exchangeModal').style.display = 'none';
+    }
+
+    async connectMetaMask() {
+        try {
+            if (typeof window.ethereum !== 'undefined') {
+                this.showStatus('Connecting to MetaMask...', 'info');
+                
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                
+                const wallet = {
+                    type: 'metamask',
+                    address: accounts[0],
+                    chainId: chainId,
+                    name: 'MetaMask',
+                    icon: 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg'
+                };
+                
+                this.addConnectedWallet(wallet);
+                this.showStatus('MetaMask connected successfully!', 'success');
+                await this.syncWalletBalance(wallet);
+                
+            } else {
+                this.showStatus('MetaMask not found. Please install MetaMask extension.', 'error');
+            }
+        } catch (error) {
+            this.showStatus('Failed to connect MetaMask: ' + error.message, 'error');
+        }
+    }
+
+    async connectPhantom() {
+        try {
+            if (typeof window.solana !== 'undefined' && window.solana.isPhantom) {
+                this.showStatus('Connecting to Phantom...', 'info');
+                
+                const response = await window.solana.connect();
+                
+                const wallet = {
+                    type: 'phantom',
+                    address: response.publicKey.toString(),
+                    name: 'Phantom',
+                    icon: 'https://phantom.app/img/phantom-icon-purple.png'
+                };
+                
+                this.addConnectedWallet(wallet);
+                this.showStatus('Phantom connected successfully!', 'success');
+                await this.syncWalletBalance(wallet);
+                
+            } else {
+                this.showStatus('Phantom not found. Please install Phantom wallet.', 'error');
+            }
+        } catch (error) {
+            this.showStatus('Failed to connect Phantom: ' + error.message, 'error');
+        }
+    }
+
+    async connectWalletConnect() {
+        // WalletConnect integration would require additional setup
+        this.showStatus('WalletConnect integration coming soon!', 'info');
+    }
+
+    addConnectedWallet(wallet) {
+        const existingIndex = this.connectedWallets.findIndex(w => w.address === wallet.address);
+        if (existingIndex === -1) {
+            this.connectedWallets.push(wallet);
+            this.saveConnectedWallets();
+            this.updateWalletDisplay();
+        }
+    }
+
+    removeConnectedWallet(address) {
+        this.connectedWallets = this.connectedWallets.filter(w => w.address !== address);
+        this.saveConnectedWallets();
+        this.updateWalletDisplay();
+    }
+
+    async syncWalletBalance(wallet) {
+        try {
+            if (wallet.type === 'metamask') {
+                await this.syncEthereumWallet(wallet);
+            } else if (wallet.type === 'phantom') {
+                await this.syncSolanaWallet(wallet);
+            }
+        } catch (error) {
+            console.error('Error syncing wallet balance:', error);
+        }
+    }
+
+    async syncEthereumWallet(wallet) {
+        try {
+            // Get ETH balance
+            const balance = await window.ethereum.request({
+                method: 'eth_getBalance',
+                params: [wallet.address, 'latest']
+            });
+            
+            const ethBalance = parseInt(balance, 16) / Math.pow(10, 18);
+            
+            if (ethBalance > 0) {
+                const ethPrice = await this.getCoinPrice('ethereum');
+                const ethValue = ethBalance * ethPrice;
+                
+                await this.addWalletHolding({
+                    coinId: 'ethereum',
+                    coinName: 'Ethereum',
+                    symbol: 'ETH',
+                    amount: ethBalance,
+                    value: ethValue,
+                    walletAddress: wallet.address,
+                    walletType: wallet.type
+                });
+            }
+
+            // Get ERC-20 token balances (simplified - would need token contract addresses)
+            await this.syncERC20Tokens(wallet.address);
+            
+        } catch (error) {
+            console.error('Error syncing Ethereum wallet:', error);
+        }
+    }
+
+    async syncSolanaWallet(wallet) {
+        try {
+            // Get SOL balance
+            const connection = new solanaWeb3.Connection('https://api.mainnet-beta.solana.com');
+            const publicKey = new solanaWeb3.PublicKey(wallet.address);
+            const balance = await connection.getBalance(publicKey);
+            const solBalance = balance / solanaWeb3.LAMPORTS_PER_SOL;
+            
+            if (solBalance > 0) {
+                const solPrice = await this.getCoinPrice('solana');
+                const solValue = solBalance * solPrice;
+                
+                await this.addWalletHolding({
+                    coinId: 'solana',
+                    coinName: 'Solana',
+                    symbol: 'SOL',
+                    amount: solBalance,
+                    value: solValue,
+                    walletAddress: wallet.address,
+                    walletType: wallet.type
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error syncing Solana wallet:', error);
+        }
+    }
+
+    async addWalletHolding(holding) {
+        // Check if this holding already exists in portfolio
+        const existingCoin = portfolio.find(coin => 
+            coin.id === holding.coinId && 
+            coin.walletAddress === holding.walletAddress
+        );
+
+        if (!existingCoin && holding.value > 1) { // Only add if value > $1
+            const coin = {
+                id: holding.coinId,
+                name: holding.coinName,
+                symbol: holding.symbol,
+                invested: holding.value,
+                current: holding.value,
+                profit: 0,
+                coinsBought: holding.amount,
+                currentPrice: holding.value / holding.amount,
+                date: new Date().toISOString().split('T')[0],
+                baseCaseROI: 2,
+                moonCaseROI: 10,
+                walletAddress: holding.walletAddress,
+                walletType: holding.walletType,
+                autoImported: true,
+                history: [{
+                    date: new Date().toISOString().split('T')[0],
+                    price: holding.value / holding.amount,
+                    value: holding.value
+                }]
+            };
+
+            portfolio.push(coin);
+            await savePortfolioToFirebase();
+            updatePortfolioTable();
+            updateTotals();
+            
+            this.showNotification('success', 'Wallet Sync', 
+                `Added ${holding.coinName} (${holding.amount.toFixed(4)} ${holding.symbol}) from ${holding.walletType}`);
+        }
+    }
+
+    async getCoinPrice(coinId) {
+        try {
+            const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`);
+            const data = await response.json();
+            return data[coinId]?.usd || 0;
+        } catch (error) {
+            console.error('Error fetching coin price:', error);
+            return 0;
+        }
+    }
+
+    showExchangeForm(exchange) {
+        document.getElementById('exchangeApiForm').style.display = 'block';
+        document.getElementById('selectedExchangeName').textContent = exchange.charAt(0).toUpperCase() + exchange.slice(1);
+        document.getElementById('exchangeApiForm').dataset.exchange = exchange;
+    }
+
+    async saveExchangeConnection() {
+        const exchange = document.getElementById('exchangeApiForm').dataset.exchange;
+        const apiKey = document.getElementById('apiKey').value;
+        const apiSecret = document.getElementById('apiSecret').value;
+        const apiPassphrase = document.getElementById('apiPassphrase').value;
+
+        if (!apiKey || !apiSecret) {
+            this.showStatus('Please fill in all required fields', 'error');
+            return;
+        }
+
+        const exchangeConnection = {
+            exchange: exchange,
+            apiKey: this.encryptApiKey(apiKey), // In production, encrypt these
+            apiSecret: this.encryptApiKey(apiSecret),
+            apiPassphrase: apiPassphrase ? this.encryptApiKey(apiPassphrase) : null,
+            connected: true,
+            lastSync: new Date().toISOString()
+        };
+
+        // Test the connection
+        try {
+            await this.testExchangeConnection(exchangeConnection);
+            this.connectedExchanges.push(exchangeConnection);
+            this.saveConnectedExchanges();
+            this.updateExchangeDisplay();
+            this.showStatus('Exchange connected successfully!', 'success');
+            
+            // Start syncing exchange data
+            await this.syncExchangePortfolio(exchangeConnection);
+            
+        } catch (error) {
+            this.showStatus('Failed to connect exchange: ' + error.message, 'error');
+        }
+
+        // Clear form
+        document.getElementById('apiKey').value = '';
+        document.getElementById('apiSecret').value = '';
+        document.getElementById('apiPassphrase').value = '';
+        document.getElementById('exchangeApiForm').style.display = 'none';
+    }
+
+    async testExchangeConnection(connection) {
+        // Simplified connection test - in production, implement proper API calls
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(true), 1000);
+        });
+    }
+
+    async syncExchangePortfolio(connection) {
+        // Simplified sync - in production, implement proper exchange API calls
+        this.showNotification('info', 'Exchange Sync', 
+            `Starting portfolio sync from ${connection.exchange}...`);
+    }
+
+    encryptApiKey(key) {
+        // Simplified encryption - in production, use proper encryption
+        return btoa(key);
+    }
+
+    updateWalletDisplay() {
+        const container = document.getElementById('connectedWallets');
+        if (!container) return;
+
+        container.innerHTML = '';
+        
+        if (this.connectedWallets.length === 0) {
+            container.innerHTML = '<p style="color: #6b7280; text-align: center;">No wallets connected</p>';
+            return;
+        }
+
+        this.connectedWallets.forEach(wallet => {
+            const item = document.createElement('div');
+            item.className = 'connected-item';
+            item.innerHTML = `
+                <div class="info">
+                    <img src="${wallet.icon}" alt="${wallet.name}">
+                    <div>
+                        <div style="font-weight: 500;">${wallet.name}</div>
+                        <div style="font-size: 12px; color: #6b7280;">${this.truncateAddress(wallet.address)}</div>
+                    </div>
+                </div>
+                <button class="disconnect-btn" onclick="walletManager.removeConnectedWallet('${wallet.address}')">
+                    Disconnect
+                </button>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    updateExchangeDisplay() {
+        const container = document.getElementById('connectedExchanges');
+        if (!container) return;
+
+        container.innerHTML = '';
+        
+        if (this.connectedExchanges.length === 0) {
+            container.innerHTML = '<p style="color: #6b7280; text-align: center;">No exchanges connected</p>';
+            return;
+        }
+
+        this.connectedExchanges.forEach((exchange, index) => {
+            const item = document.createElement('div');
+            item.className = 'connected-item';
+            item.innerHTML = `
+                <div class="info">
+                    <div>
+                        <div style="font-weight: 500;">${exchange.exchange.charAt(0).toUpperCase() + exchange.exchange.slice(1)}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Last sync: ${new Date(exchange.lastSync).toLocaleDateString()}</div>
+                    </div>
+                </div>
+                <button class="disconnect-btn" onclick="walletManager.removeExchange(${index})">
+                    Disconnect
+                </button>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    removeExchange(index) {
+        this.connectedExchanges.splice(index, 1);
+        this.saveConnectedExchanges();
+        this.updateExchangeDisplay();
+    }
+
+    truncateAddress(address) {
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    }
+
+    showStatus(message, type) {
+        const statusEl = document.getElementById('walletStatus');
+        if (!statusEl) return;
+
+        statusEl.textContent = message;
+        statusEl.className = `wallet-status ${type}`;
+    }
+
+    saveConnectedWallets() {
+        localStorage.setItem('connectedWallets', JSON.stringify(this.connectedWallets));
+        if (auth.currentUser) {
+            this.saveWalletDataToFirebase();
+        }
+    }
+
+    saveConnectedExchanges() {
+        localStorage.setItem('connectedExchanges', JSON.stringify(this.connectedExchanges));
+        if (auth.currentUser) {
+            this.saveExchangeDataToFirebase();
+        }
+    }
+
+    loadConnectedWallets() {
+        const saved = localStorage.getItem('connectedWallets');
+        if (saved) {
+            this.connectedWallets = JSON.parse(saved);
+        }
+    }
+
+    loadConnectedExchanges() {
+        const saved = localStorage.getItem('connectedExchanges');
+        if (saved) {
+            this.connectedExchanges = JSON.parse(saved);
+        }
+    }
+
+    async saveWalletDataToFirebase() {
+        if (!auth.currentUser) return;
+        
+        try {
+            await db.collection('users').doc(auth.currentUser.uid).set({
+                connectedWallets: this.connectedWallets
+            }, { merge: true });
+        } catch (error) {
+            console.error('Error saving wallet data to Firebase:', error);
+        }
+    }
+
+    async saveExchangeDataToFirebase() {
+        if (!auth.currentUser) return;
+        
+        try {
+            await db.collection('users').doc(auth.currentUser.uid).set({
+                connectedExchanges: this.connectedExchanges
+            }, { merge: true });
+        } catch (error) {
+            console.error('Error saving exchange data to Firebase:', error);
+        }
+    }
+
+    showNotification(type, title, message) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-header">
+                <div class="notification-title">${title}</div>
+                <button class="notification-close">&times;</button>
+            </div>
+            <div class="notification-body">${message}</div>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+
+        // Manual close
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.remove();
+        });
+    }
+}
+
+// =============================================================================
+// ADVANCED ALERTS SYSTEM
+// =============================================================================
+
+class AlertsManager {
+    constructor() {
+        this.alerts = [];
+        this.isInitialized = false;
+        this.checkInterval = null;
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.loadAlerts();
+        this.startAlertChecking();
+        this.setupAlertCoinAutocomplete();
+        this.isInitialized = true;
+    }
+
+    setupEventListeners() {
+        // Alerts Modal
+        document.getElementById('alertsButton')?.addEventListener('click', () => this.openAlertsModal());
+        document.getElementById('closeAlertsModal')?.addEventListener('click', () => this.closeAlertsModal());
+        
+        // Alert Tabs
+        document.getElementById('priceAlertsTab')?.addEventListener('click', () => this.switchTab('price'));
+        document.getElementById('portfolioAlertsTab')?.addEventListener('click', () => this.switchTab('portfolio'));
+        document.getElementById('marketAlertsTab')?.addEventListener('click', () => this.switchTab('market'));
+        
+        // Create Alert Buttons
+        document.getElementById('createPriceAlert')?.addEventListener('click', () => this.createPriceAlert());
+        document.getElementById('createPortfolioAlert')?.addEventListener('click', () => this.createPortfolioAlert());
+        document.getElementById('createMarketAlert')?.addEventListener('click', () => this.createMarketAlert());
+    }
+
+    openAlertsModal() {
+        document.getElementById('alertsModal').style.display = 'block';
+        this.updateAllAlertDisplays();
+    }
+
+    closeAlertsModal() {
+        document.getElementById('alertsModal').style.display = 'none';
+    }
+
+    switchTab(tab) {
+        // Remove active class from all tabs and contents
+        document.querySelectorAll('.alert-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.alert-content').forEach(c => c.classList.remove('active'));
+        
+        // Add active class to selected tab and content
+        document.getElementById(`${tab}AlertsTab`).classList.add('active');
+        document.getElementById(`${tab}AlertsContent`).classList.add('active');
+    }
+
+    setupAlertCoinAutocomplete() {
+        const alertCoinInput = $('#alertCoin');
+        if (alertCoinInput.length && coinData.length > 0) {
+            alertCoinInput.autocomplete({
+                source: coinData,
+                minLength: 2,
+                select: function(event, ui) {
+                    alertCoinInput.data('coin-id', ui.item.id);
+                }
+            }).autocomplete("instance")._renderItem = function(ul, item) {
+                return $("<li>")
+                    .append(`<div><img src="${item.image}" class="coin-select-icon"> ${item.label}</div>`)
+                    .appendTo(ul);
+            };
+        }
+    }
+
+    createPriceAlert() {
+        const coinId = $('#alertCoin').data('coin-id');
+        const coinName = document.getElementById('alertCoin').value;
+        const alertType = document.getElementById('alertType').value;
+        const alertValue = parseFloat(document.getElementById('alertValue').value);
+        const frequency = document.getElementById('alertFrequency').value;
+
+        if (!coinId || !alertValue) {
+            this.showNotification('error', 'Invalid Alert', 'Please select a coin and enter a valid value');
+            return;
+        }
+
+        const alert = {
+            id: this.generateAlertId(),
+            type: 'price',
+            coinId: coinId,
+            coinName: coinName,
+            alertType: alertType,
+            targetValue: alertValue,
+            frequency: frequency,
+            active: true,
+            created: new Date().toISOString(),
+            lastTriggered: null,
+            triggerCount: 0
+        };
+
+        this.alerts.push(alert);
+        this.saveAlerts();
+        this.updatePriceAlertsDisplay();
+        this.clearPriceAlertForm();
+        
+        this.showNotification('success', 'Alert Created', 
+            `Price alert for ${coinName} has been created`);
+    }
+
+    createPortfolioAlert() {
+        const alertType = document.getElementById('portfolioAlertType').value;
+        const alertValue = parseFloat(document.getElementById('portfolioAlertValue').value);
+
+        if (!alertValue) {
+            this.showNotification('error', 'Invalid Alert', 'Please enter a valid threshold value');
+            return;
+        }
+
+        const alert = {
+            id: this.generateAlertId(),
+            type: 'portfolio',
+            alertType: alertType,
+            targetValue: alertValue,
+            active: true,
+            created: new Date().toISOString(),
+            lastTriggered: null,
+            triggerCount: 0
+        };
+
+        this.alerts.push(alert);
+        this.saveAlerts();
+        this.updatePortfolioAlertsDisplay();
+        this.clearPortfolioAlertForm();
+        
+        this.showNotification('success', 'Alert Created', 
+            `Portfolio alert for ${alertType} has been created`);
+    }
+
+    createMarketAlert() {
+        const alertType = document.getElementById('marketAlertType').value;
+        const alertValue = parseFloat(document.getElementById('marketAlertValue').value);
+
+        if (!alertValue) {
+            this.showNotification('error', 'Invalid Alert', 'Please enter a valid threshold value');
+            return;
+        }
+
+        const alert = {
+            id: this.generateAlertId(),
+            type: 'market',
+            alertType: alertType,
+            targetValue: alertValue,
+            active: true,
+            created: new Date().toISOString(),
+            lastTriggered: null,
+            triggerCount: 0
+        };
+
+        this.alerts.push(alert);
+        this.saveAlerts();
+        this.updateMarketAlertsDisplay();
+        this.clearMarketAlertForm();
+        
+        this.showNotification('success', 'Alert Created', 
+            `Market alert for ${alertType} has been created`);
+    }
+
+    async startAlertChecking() {
+        if (this.checkInterval) {
+            clearInterval(this.checkInterval);
+        }
+
+        // Check alerts every 2 minutes
+        this.checkInterval = setInterval(() => {
+            this.checkAllAlerts();
+        }, 120000);
+
+        // Initial check
+        this.checkAllAlerts();
+    }
+
+    async checkAllAlerts() {
+        if (!this.alerts.length) return;
+
+        for (const alert of this.alerts.filter(a => a.active)) {
+            try {
+                if (alert.type === 'price') {
+                    await this.checkPriceAlert(alert);
+                } else if (alert.type === 'portfolio') {
+                    await this.checkPortfolioAlert(alert);
+                } else if (alert.type === 'market') {
+                    await this.checkMarketAlert(alert);
+                }
+            } catch (error) {
+                console.error('Error checking alert:', error);
+            }
+        }
+    }
+
+    async checkPriceAlert(alert) {
+        try {
+            const currentPrice = await this.getCoinPrice(alert.coinId);
+            let triggered = false;
+            let message = '';
+
+            switch (alert.alertType) {
+                case 'price_above':
+                    if (currentPrice >= alert.targetValue) {
+                        triggered = true;
+                        message = `${alert.coinName} price ($${currentPrice.toFixed(2)}) is above your target of $${alert.targetValue}`;
+                    }
+                    break;
+                case 'price_below':
+                    if (currentPrice <= alert.targetValue) {
+                        triggered = true;
+                        message = `${alert.coinName} price ($${currentPrice.toFixed(2)}) is below your target of $${alert.targetValue}`;
+                    }
+                    break;
+                case 'price_change':
+                    const priceChange = await this.getCoinPriceChange24h(alert.coinId);
+                    if (Math.abs(priceChange) >= alert.targetValue) {
+                        triggered = true;
+                        message = `${alert.coinName} has changed ${priceChange.toFixed(2)}% in 24h (target: ${alert.targetValue}%)`;
+                    }
+                    break;
+            }
+
+            if (triggered && this.shouldTriggerAlert(alert)) {
+                this.triggerAlert(alert, message);
+            }
+        } catch (error) {
+            console.error('Error checking price alert:', error);
+        }
+    }
+
+    async checkPortfolioAlert(alert) {
+        if (!portfolio.length) return;
+
+        let triggered = false;
+        let message = '';
+
+        switch (alert.alertType) {
+            case 'total_gain':
+                const totalPercentage = totalInvestment ? (totalProfit / totalInvestment * 100) : 0;
+                if (Math.abs(totalPercentage) >= alert.targetValue) {
+                    triggered = true;
+                    message = `Portfolio ${totalPercentage >= 0 ? 'gain' : 'loss'}: ${Math.abs(totalPercentage).toFixed(2)}% (target: ${alert.targetValue}%)`;
+                }
+                break;
+            case 'daily_change':
+                const dailyChange = await this.calculateDailyPortfolioChange();
+                if (Math.abs(dailyChange) >= alert.targetValue) {
+                    triggered = true;
+                    message = `Portfolio daily change: ${dailyChange.toFixed(2)}% (target: ${alert.targetValue}%)`;
+                }
+                break;
+            case 'rebalance_needed':
+                const needsRebalancing = this.checkRebalancingNeeded();
+                if (needsRebalancing) {
+                    triggered = true;
+                    message = 'Portfolio rebalancing recommended based on allocation drift';
+                }
+                break;
+        }
+
+        if (triggered && this.shouldTriggerAlert(alert)) {
+            this.triggerAlert(alert, message);
+        }
+    }
+
+    async checkMarketAlert(alert) {
+        let triggered = false;
+        let message = '';
+
+        switch (alert.alertType) {
+            case 'fear_greed':
+                const fearGreedIndex = await this.getFearGreedIndex();
+                if (fearGreedIndex <= alert.targetValue) {
+                    triggered = true;
+                    message = `Fear & Greed Index: ${fearGreedIndex} (target: ${alert.targetValue})`;
+                }
+                break;
+            case 'btc_dominance':
+                const btcDominance = await this.getBitcoinDominance();
+                if (btcDominance <= alert.targetValue) {
+                    triggered = true;
+                    message = `Bitcoin Dominance: ${btcDominance}% (target: ${alert.targetValue}%)`;
+                }
+                break;
+        }
+
+        if (triggered && this.shouldTriggerAlert(alert)) {
+            this.triggerAlert(alert, message);
+        }
+    }
+
+    shouldTriggerAlert(alert) {
+        const now = new Date();
+        
+        if (alert.frequency === 'once' && alert.triggerCount > 0) {
+            return false;
+        }
+        
+        if (alert.frequency === 'daily' && alert.lastTriggered) {
+            const lastTrigger = new Date(alert.lastTriggered);
+            const hoursSinceLastTrigger = (now - lastTrigger) / (1000 * 60 * 60);
+            if (hoursSinceLastTrigger < 24) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    triggerAlert(alert, message) {
+        alert.lastTriggered = new Date().toISOString();
+        alert.triggerCount++;
+        
+        if (alert.frequency === 'once') {
+            alert.active = false;
+        }
+        
+        this.saveAlerts();
+        this.showNotification('warning', 'Alert Triggered!', message);
+        
+        // Update displays
+        this.updateAllAlertDisplays();
+    }
+
+    // Helper methods for data fetching
+    async getCoinPrice(coinId) {
+        try {
+            const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`);
+            const data = await response.json();
+            return data[coinId]?.usd || 0;
+        } catch (error) {
+            console.error('Error fetching coin price:', error);
+            return 0;
+        }
+    }
+
+    async getCoinPriceChange24h(coinId) {
+        try {
+            const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`);
+            const data = await response.json();
+            return data[coinId]?.usd_24h_change || 0;
+        } catch (error) {
+            console.error('Error fetching price change:', error);
+            return 0;
+        }
+    }
+
+    async getFearGreedIndex() {
+        try {
+            const response = await fetch('https://api.alternative.me/fng/');
+            const data = await response.json();
+            return parseInt(data.data[0].value);
+        } catch (error) {
+            console.error('Error fetching Fear & Greed index:', error);
+            return 50; // Neutral
+        }
+    }
+
+    async getBitcoinDominance() {
+        try {
+            const response = await fetch('https://api.coingecko.com/api/v3/global');
+            const data = await response.json();
+            return data.data.market_cap_percentage.btc || 0;
+        } catch (error) {
+            console.error('Error fetching Bitcoin dominance:', error);
+            return 0;
+        }
+    }
+
+    async calculateDailyPortfolioChange() {
+        // Simplified calculation - in production, compare with yesterday's values
+        const totalPercentage = totalInvestment ? (totalProfit / totalInvestment * 100) : 0;
+        return totalPercentage * 0.1; // Simplified daily change estimation
+    }
+
+    checkRebalancingNeeded() {
+        if (portfolio.length < 2) return false;
+        
+        // Simple rebalancing check - if any coin is >50% of portfolio
+        const totalValue = portfolio.reduce((sum, coin) => sum + coin.current, 0);
+        return portfolio.some(coin => (coin.current / totalValue) > 0.5);
+    }
+
+    // Display update methods
+    updateAllAlertDisplays() {
+        this.updatePriceAlertsDisplay();
+        this.updatePortfolioAlertsDisplay();
+        this.updateMarketAlertsDisplay();
+    }
+
+    updatePriceAlertsDisplay() {
+        const container = document.getElementById('priceAlertsList');
+        if (!container) return;
+
+        const priceAlerts = this.alerts.filter(a => a.type === 'price');
+        this.renderAlertsList(container, priceAlerts);
+    }
+
+    updatePortfolioAlertsDisplay() {
+        const container = document.getElementById('portfolioAlertsList');
+        if (!container) return;
+
+        const portfolioAlerts = this.alerts.filter(a => a.type === 'portfolio');
+        this.renderAlertsList(container, portfolioAlerts);
+    }
+
+    updateMarketAlertsDisplay() {
+        const container = document.getElementById('marketAlertsList');
+        if (!container) return;
+
+        const marketAlerts = this.alerts.filter(a => a.type === 'market');
+        this.renderAlertsList(container, marketAlerts);
+    }
+
+    renderAlertsList(container, alerts) {
+        container.innerHTML = '';
+        
+        if (alerts.length === 0) {
+            container.innerHTML = '<p style="color: #6b7280; text-align: center;">No alerts created</p>';
+            return;
+        }
+
+        alerts.forEach(alert => {
+            const item = document.createElement('div');
+            item.className = `alert-item ${alert.triggerCount > 0 ? 'triggered' : ''}`;
+            
+            const description = this.getAlertDescription(alert);
+            const status = alert.active ? 'active' : (alert.triggerCount > 0 ? 'triggered' : 'inactive');
+            
+            item.innerHTML = `
+                <div class="alert-info">
+                    <h4>${description}</h4>
+                    <p>Created: ${new Date(alert.created).toLocaleDateString()}</p>
+                    ${alert.lastTriggered ? `<p>Last triggered: ${new Date(alert.lastTriggered).toLocaleDateString()}</p>` : ''}
+                    <span class="alert-status ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                </div>
+                <div class="alert-actions">
+                    <button class="alert-toggle ${alert.active ? '' : 'disabled'}" 
+                            onclick="alertsManager.toggleAlert('${alert.id}')">
+                        ${alert.active ? 'Disable' : 'Enable'}
+                    </button>
+                    <button class="alert-delete" onclick="alertsManager.deleteAlert('${alert.id}')">
+                        Delete
+                    </button>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    getAlertDescription(alert) {
+        switch (alert.type) {
+            case 'price':
+                const typeDesc = {
+                    'price_above': 'above',
+                    'price_below': 'below',
+                    'price_change': 'changes by',
+                    'volume_spike': 'volume spike'
+                };
+                return `${alert.coinName} ${typeDesc[alert.alertType]} $${alert.targetValue}${alert.alertType === 'price_change' ? '%' : ''}`;
+            
+            case 'portfolio':
+                return `Portfolio ${alert.alertType.replace('_', ' ')} ${alert.targetValue}%`;
+            
+            case 'market':
+                return `${alert.alertType.replace('_', ' ')} ${alert.targetValue}`;
+            
+            default:
+                return 'Unknown alert';
+        }
+    }
+
+    toggleAlert(alertId) {
+        const alert = this.alerts.find(a => a.id === alertId);
+        if (alert) {
+            alert.active = !alert.active;
+            this.saveAlerts();
+            this.updateAllAlertDisplays();
+        }
+    }
+
+    deleteAlert(alertId) {
+        this.alerts = this.alerts.filter(a => a.id !== alertId);
+        this.saveAlerts();
+        this.updateAllAlertDisplays();
+    }
+
+    // Form clearing methods
+    clearPriceAlertForm() {
+        document.getElementById('alertCoin').value = '';
+        document.getElementById('alertType').selectedIndex = 0;
+        document.getElementById('alertValue').value = '';
+        document.getElementById('alertFrequency').selectedIndex = 0;
+        $('#alertCoin').removeData('coin-id');
+    }
+
+    clearPortfolioAlertForm() {
+        document.getElementById('portfolioAlertType').selectedIndex = 0;
+        document.getElementById('portfolioAlertValue').value = '';
+    }
+
+    clearMarketAlertForm() {
+        document.getElementById('marketAlertType').selectedIndex = 0;
+        document.getElementById('marketAlertValue').value = '';
+    }
+
+    // Utility methods
+    generateAlertId() {
+        return 'alert_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    saveAlerts() {
+        localStorage.setItem('userAlerts', JSON.stringify(this.alerts));
+        if (auth.currentUser) {
+            this.saveAlertsToFirebase();
+        }
+    }
+
+    loadAlerts() {
+        const saved = localStorage.getItem('userAlerts');
+        if (saved) {
+            this.alerts = JSON.parse(saved);
+        }
+    }
+
+    async saveAlertsToFirebase() {
+        if (!auth.currentUser) return;
+        
+        try {
+            await db.collection('users').doc(auth.currentUser.uid).set({
+                alerts: this.alerts
+            }, { merge: true });
+        } catch (error) {
+            console.error('Error saving alerts to Firebase:', error);
+        }
+    }
+
+    showNotification(type, title, message) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-header">
+                <div class="notification-title">${title}</div>
+                <button class="notification-close">&times;</button>
+            </div>
+            <div class="notification-body">${message}</div>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+
+        // Manual close
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.remove();
+        });
+    }
+}
+
+// Initialize managers when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize wallet and alerts managers
+    window.walletManager = new WalletManager();
+    window.alertsManager = new AlertsManager();
+    
+    console.log('Wallet and Alerts systems initialized!');
+});

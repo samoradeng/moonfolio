@@ -1165,3 +1165,408 @@ th {
     width: 20px;
     height: auto;
 }
+
+/* =============================================================================
+   WALLET CONNECTION & EXCHANGE INTEGRATION STYLES
+   ============================================================================= */
+
+/* Header button styles */
+.wallet-button, .exchange-button, .alerts-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    margin-right: 8px;
+    transition: all 0.3s ease;
+}
+
+.wallet-button:hover, .exchange-button:hover, .alerts-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Wallet Modal Styles */
+.wallet-options, .exchange-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.wallet-option-btn, .exchange-option-btn {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: #374151;
+    font-weight: 500;
+}
+
+.wallet-option-btn:hover, .exchange-option-btn:hover {
+    border-color: #667eea;
+    background: #f8faff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+}
+
+.wallet-icon, .exchange-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+    border-radius: 8px;
+}
+
+.wallet-status {
+    padding: 16px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    margin-top: 16px;
+    display: none;
+}
+
+.wallet-status.success {
+    background: #d1fae5;
+    color: #065f46;
+    display: block;
+}
+
+.wallet-status.error {
+    background: #fee2e2;
+    color: #991b1b;
+    display: block;
+}
+
+.connected-wallets, .connected-exchanges {
+    margin-top: 24px;
+}
+
+.connected-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.connected-item .info {
+    display: flex;
+    align-items: center;
+}
+
+.connected-item .info img {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+}
+
+.disconnect-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* Exchange API Form */
+.exchange-api-form {
+    background: #f9fafb;
+    padding: 24px;
+    border-radius: 12px;
+    margin-top: 16px;
+}
+
+.api-permissions-note {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 16px 0;
+}
+
+.api-permissions-note p {
+    margin: 0;
+    color: #92400e;
+    font-size: 14px;
+}
+
+/* =============================================================================
+   ALERTS SYSTEM STYLES
+   ============================================================================= */
+
+.alerts-modal .modal-content {
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.alerts-tabs {
+    display: flex;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 24px;
+}
+
+.alert-tab {
+    background: none;
+    border: none;
+    padding: 12px 24px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #6b7280;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.alert-tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.alert-tab:hover {
+    color: #4f46e5;
+}
+
+.alert-content {
+    display: none;
+}
+
+.alert-content.active {
+    display: block;
+}
+
+.create-alert-form {
+    background: #f9fafb;
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.create-alert-form h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #374151;
+}
+
+.alerts-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.alert-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.alert-item.triggered {
+    background: #fef3c7;
+    border-color: #f59e0b;
+}
+
+.alert-info {
+    flex: 1;
+}
+
+.alert-info h4 {
+    margin: 0 0 4px 0;
+    color: #374151;
+    font-size: 16px;
+}
+
+.alert-info p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.alert-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.alert-toggle {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.alert-toggle.disabled {
+    background: #6b7280;
+}
+
+.alert-delete {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* Alert status indicators */
+.alert-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.alert-status.active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.alert-status.inactive {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.alert-status.triggered {
+    background: #fecaca;
+    color: #991b1b;
+}
+
+/* Notification styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 10000;
+    max-width: 350px;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.notification.success {
+    border-left: 4px solid #10b981;
+}
+
+.notification.warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.notification.error {
+    border-left: 4px solid #ef4444;
+}
+
+.notification .notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.notification .notification-title {
+    font-weight: 600;
+    color: #374151;
+}
+
+.notification .notification-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.notification .notification-body {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .wallet-options, .exchange-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .alerts-tabs {
+        flex-direction: column;
+    }
+    
+    .alert-tab {
+        text-align: center;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .alert-tab.active {
+        border-bottom-color: #667eea;
+    }
+    
+    .wallet-button, .exchange-button, .alerts-button {
+        margin: 4px 0;
+        width: 100%;
+    }
+}
+
+/* Loading states */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
