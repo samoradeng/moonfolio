@@ -31,6 +31,7 @@
             <img src="/images/moonfolio-logo-mobile.svg" alt="Moonfolio Mobile Logo" class="mobile-logo">
         </div>
         <nav class="header-nav">
+            <button id="connectWalletBtn" class="auth-button">🔗 Connect Wallet</button>
             <button id="signInModalButton" class="auth-button">Sign in</button>
             <button id="signUpModalButton" class="auth-button sign-up">Sign up</button>
             <div id="userMenuContainer" class="user-menu-container">
@@ -75,6 +76,28 @@
 
 <!-- Toast Container -->
 <div id="toastContainer" class="toast-container"></div>
+
+<!-- Simple Wallet Connection Modal -->
+<div id="walletModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Connect Your Wallet</h2>
+            <span id="closeWalletModal" class="close-button">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div style="margin-bottom: 20px;">
+                <button id="connectMetaMask" class="auth-button" style="width: 100%; margin-bottom: 10px;">
+                    🦊 Connect MetaMask
+                </button>
+                <button id="connectPhantom" class="auth-button" style="width: 100%; margin-bottom: 10px;">
+                    👻 Connect Phantom
+                </button>
+            </div>
+            <div id="walletStatus" style="margin-top: 15px; padding: 10px; border-radius: 5px; display: none;"></div>
+            <div id="connectedWallets" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+</div>
 
 <body>
     <!-- Sign In/Sign Up Modal -->

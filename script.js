@@ -1603,3 +1603,110 @@ document.addEventListener('visibilitychange', function() {
         attachEventListeners();
     }
 });
+
+// Simple Wallet Connection
+document.addEventListener('DOMContentLoaded', function() {
+    const connectWalletBtn = document.getElementById('connectWalletBtn');
+    const walletModal = document.getElementById('walletModal');
+    const closeWalletModal = document.getElementById('closeWalletModal');
+    const connectMetaMask = document.getElementById('connectMetaMask');
+    const connectPhantom = document.getElementById('connectPhantom');
+    const walletStatus = document.getElementById('walletStatus');
+
+    // Open wallet modal
+    if (connectWalletBtn) {
+        connectWalletBtn.addEventListener('click', function() {
+            walletModal.style.display = 'block';
+        });
+    }
+
+    // Close wallet modal
+    if (closeWalletModal) {
+        closeWalletModal.addEventListener('click', function() {
+            walletModal.style.display = 'none';
+        });
+    }
+
+    // Connect MetaMask
+    if (connectMetaMask) {
+        connectMetaMask.addEventListener('click', async function() {
+            try {
+                if (typeof window.ethereum !== 'undefined') {
+                    showWalletStatus('Connecting to MetaMask...', 'info');
+                    
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                    
+                    if (accounts.length > 0) {
+                        showWalletStatus(`✅ MetaMask Connected! Address: ${accounts[0].substring(0,8)}...`, 'success');
+                        connectWalletBtn.textContent = '✅ MetaMask Connected';
+                        connectWalletBtn.style.background = '#10b981';
+                    }
+                } else {
+                    showWalletStatus('❌ MetaMask not found. Please install MetaMask extension.', 'error');
+                }
+            } catch (error) {
+                if (error.code === 4001) {
+                    showWalletStatus('❌ Connection rejected by user.', 'error');
+                } else {
+                    showWalletStatus('❌ Failed to connect: ' + error.message, 'error');
+                }
+            }
+        });
+    }
+
+    // Connect Phantom
+    if (connectPhantom) {
+        connectPhantom.addEventListener('click', async function() {
+            try {
+                if (typeof window.solana !== 'undefined' && window.solana.isPhantom) {
+                    showWalletStatus('Connecting to Phantom...', 'info');
+                    
+                    const response = await window.solana.connect();
+                    
+                    if (response.publicKey) {
+                        const address = response.publicKey.toString();
+                        showWalletStatus(`✅ Phantom Connected! Address: ${address.substring(0,8)}...`, 'success');
+                        connectWalletBtn.textContent = '✅ Phantom Connected';
+                        connectWalletBtn.style.background = '#10b981';
+                    }
+                } else {
+                    showWalletStatus('❌ Phantom not found. Please install Phantom wallet.', 'error');
+                }
+            } catch (error) {
+                if (error.code === 4001) {
+                    showWalletStatus('❌ Connection rejected by user.', 'error');
+                } else {
+                    showWalletStatus('❌ Failed to connect: ' + error.message, 'error');
+                }
+            }
+        });
+    }
+
+    function showWalletStatus(message, type) {
+        if (!walletStatus) return;
+        
+        walletStatus.textContent = message;
+        walletStatus.style.display = 'block';
+        
+        // Set colors based on type
+        if (type === 'success') {
+            walletStatus.style.background = '#d1fae5';
+            walletStatus.style.color = '#065f46';
+        } else if (type === 'error') {
+            walletStatus.style.background = '#fee2e2';
+            walletStatus.style.color = '#991b1b';
+        } else {
+            walletStatus.style.background = '#dbeafe';
+            walletStatus.style.color = '#1e40af';
+        }
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === walletModal) {
+            walletModal.style.display = 'none';
+        }
+    });
+});
